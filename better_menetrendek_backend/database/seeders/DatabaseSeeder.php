@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,23 +16,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        private function create_database()
+        $raw_sql = file_get_contents("database\seeders\statements.sql");
+        $sql_statements = explode(";",$raw_sql);
+
+        foreach($sql_statements as $sql_statement)
         {
-            $raw_sql = fopen('statements.sql', "r");
-            $sql_statements = explode(";", $raw_sql);
-            foreach $sql_statements as $sql_statements
+            if(!empty($sql_statement))
             {
-                DB:statement();
+                DB::statement(trim($sql_statement). ";");
             }
-            
         }
-        Eloquent::unguard();
+        self::populate_database();
+    }
 
-        // $this->call('UserTableSeeder');
-        // $this->command->info('User table seeded!');
-
-        $path = 'app/developer_docs/countries.sql';
-        DB::unprepared(file_get_contents($path));
-        $this->command->info('Country table seeded!');
+    public static function populate_database()
+    {
+        
     }
 }
