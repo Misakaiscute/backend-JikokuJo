@@ -39,7 +39,16 @@ class DatabaseSeeder extends Seeder
                 unlink($file);
             }
         }
-        file_put_contents("database/seeders/data/budapest_gtfs.zip", fopen("https://bkk.hu/gtfs/budapest_gtfs.zip", 'r'));
+        $dir = database_path('seeders/data');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $target = database_path('seeders/data/budapest_gtfs.zip');
+        $in = fopen("https://bkk.hu/gtfs/budapest_gtfs.zip", 'rb');
+        $out = fopen($target, 'wb');
+        stream_copy_to_stream($in, $out);
+        fclose($in);
+        fclose($out);
         sleep(5);
 
         $zip = new \ZipArchive;

@@ -1,5 +1,5 @@
 CREATE TABLE `trips` (
-  `trip_id` VARCHAR(255) NOT NULL,
+  `id` VARCHAR(255) NOT NULL,
   `route_id` VARCHAR(255) NOT NULL,
   `service_id` VARCHAR(255) NOT NULL,
   `trip_headsign` VARCHAR(255) NOT NULL,
@@ -8,14 +8,14 @@ CREATE TABLE `trips` (
   `shape_id` VARCHAR(255) NOT NULL,
   `wheelchair_accessible` TINYINT NOT NULL,
   `bikes_allowed` TINYINT NOT NULL,
-  PRIMARY KEY (`trip_id`, `service_id`)
+  PRIMARY KEY (`id`, `service_id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `stops` (
-  `stop_id` INT PRIMARY KEY,
-  `stop_name` VARCHAR(255) NOT NULL,
-  `stop_lat` DOUBLE NOT NULL,
-  `stop_lon` DOUBLE NOT NULL,
-  `stop_code` VARCHAR(255) NOT NULL,
+  `id` INT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `lat` DOUBLE NOT NULL,
+  `lon` DOUBLE NOT NULL,
+  `code` VARCHAR(255) NOT NULL,
   `location_type` TINYINT NOT NULL,
   `location_sub_type` TINYINT NOT NULL,
   `parent_station` INT NOT NULL,
@@ -32,59 +32,59 @@ CREATE TABLE `stop_times` (
   `drop_off_type` TINYINT NOT NULL,
   `shape_dist_traveled` FLOAT NOT NULL,
   PRIMARY KEY (`trip_id`, `stop_id`, `stop_sequence`),
-  FOREIGN KEY (`trip_id`) REFERENCES `trips`(`trip_id`),
-  FOREIGN KEY (`stop_id`) REFERENCES `stops`(`stop_id`)
+  FOREIGN KEY (`trip_id`) REFERENCES `trips`(`id`),
+  FOREIGN KEY (`stop_id`) REFERENCES `stops`(`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `shapes` (
-  `shape_id` VARCHAR(255) NOT NULL,
-  `shape_pt_sequence` INT NOT NULL,
-  `shape_pt_lat` DOUBLE NOT NULL,
-  `shape_pt_lon` DOUBLE NOT NULL,
-  `shape_dist_traveled` DOUBLE NOT NULL,
-  PRIMARY KEY (`shape_id`, `shape_pt_sequence`)
+  `id` VARCHAR(255) NOT NULL,
+  `pt_sequence` INT NOT NULL,
+  `pt_lat` DOUBLE NOT NULL,
+  `pt_lon` DOUBLE NOT NULL,
+  `dist_traveled` DOUBLE NOT NULL,
+  PRIMARY KEY (`id`, `pt_sequence`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `agency` (
-  `agency_id` VARCHAR(255) NOT NULL,
-  `agency_name` VARCHAR(255) NOT NULL,
-  `agency_url` VARCHAR(255) NOT NULL,
-  `agency_timezone` VARCHAR(255) NOT NULL,
-  `agency_lang` VARCHAR(255) NOT NULL,
-  `agency_phone` VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`agency_id`)
+  `id` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `url` VARCHAR(255) NOT NULL,
+  `timezone` VARCHAR(255) NOT NULL,
+  `lang` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `routes` (
-  `route_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `agency_id` VARCHAR(255) NOT NULL,
-  `route_short_name` VARCHAR(255),
-  `route_long_name` VARCHAR(255),
-  `route_type` TINYINT NOT NULL,
-  `route_desc` VARCHAR(255) NOT NULL,
-  `route_color` VARCHAR(255) NOT NULL,
-  `route_text_color` VARCHAR(255) NOT NULL,
-  `route_sort_order` SMALLINT NOT NULL,
-  PRIMARY KEY (`route_id`),
-  FOREIGN KEY (`agency_id`) REFERENCES `agency`(`agency_id`)
+  `short_name` VARCHAR(255),
+  `long_name` VARCHAR(255),
+  `type` TINYINT NOT NULL,
+  `desc` VARCHAR(255) NOT NULL,
+  `color` VARCHAR(255) NOT NULL,
+  `text_color` VARCHAR(255) NOT NULL,
+  `sort_order` SMALLINT NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`agency_id`) REFERENCES `agency`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `pathways` (
-  `pathway_id` INT NOT NULL,
-  `pathway_mode` TINYINT NOT NULL,
+  `id` INT NOT NULL,
+  `mode` TINYINT NOT NULL,
   `is_bidirectional` BOOLEAN NOT NULL,
   `from_stop_id` INT NOT NULL,
   `to_stop_id` INT NOT NULL,
   `traversal_time` INT NOT NULL,
-  PRIMARY KEY (`pathway_id`),
-  FOREIGN KEY (`from_stop_id`) REFERENCES `stops`(`stop_id`),
-  FOREIGN KEY (`to_stop_id`) REFERENCES `stops`(`stop_id`)
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`from_stop_id`) REFERENCES `stops`(`id`),
+  FOREIGN KEY (`to_stop_id`) REFERENCES `stops`(`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `feed_info` (
-  `feed_id` VARCHAR(255) NOT NULL,
-  `feed_publisher_name` VARCHAR(255) NOT NULL,
-  `feed_publisher_url` VARCHAR(255) NOT NULL,
-  `feed_lang` VARCHAR(255) NOT NULL,
-  `feed_start_date` INT NOT NULL,
-  `feed_end_date` INT NOT NULL,
-  `feed_version` VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`feed_id`)
+  `id` VARCHAR(255) NOT NULL,
+  `publisher_name` VARCHAR(255) NOT NULL,
+  `publisher_url` VARCHAR(255) NOT NULL,
+  `lang` VARCHAR(255) NOT NULL,
+  `start_date` INT NOT NULL,
+  `end_date` INT NOT NULL,
+  `version` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `calendar_dates` (
   `service_id` VARCHAR(255) NOT NULL,
