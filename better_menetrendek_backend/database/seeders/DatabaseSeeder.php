@@ -31,6 +31,25 @@ class DatabaseSeeder extends Seeder
 
     public static function populate_database()
     {
+        $files = glob('database/seeders/data/*');
+        foreach($files as $file)
+        {
+            if(is_file($file)) 
+            {
+                unlink($file);
+            }
+        }
+        file_put_contents("database/seeders/data/budapest_gtfs.zip", fopen("https://bkk.hu/gtfs/budapest_gtfs.zip", 'r'));
+        sleep(5);
+
+        $zip = new \ZipArchive;
+        if ($zip->open(database_path("seeders/data") .'/budapest_gtfs.zip') === TRUE) 
+        {
+            $zip->extractTo(database_path("seeders/data"));
+            $zip->close();
+        } else {
+            echo 'failed';
+        }
         
     }
 }

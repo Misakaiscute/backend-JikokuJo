@@ -1,6 +1,6 @@
 CREATE TABLE `trips` (
   `trip_id` VARCHAR(255) NOT NULL,
-  `route_id` varchar(255) NOT NULL,
+  `route_id` VARCHAR(255) NOT NULL,
   `service_id` VARCHAR(255) NOT NULL,
   `trip_headsign` VARCHAR(255) NOT NULL,
   `direction_id` INT NOT NULL,
