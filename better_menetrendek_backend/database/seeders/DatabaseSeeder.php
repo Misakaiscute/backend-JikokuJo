@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
+use Database\Seeders\TripSeeder;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
@@ -16,22 +17,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $raw_sql = file_get_contents("database\seeders\statements.sql");
+        self::create_database();
+        self::seed_database();
+    }
+    public function create_database()
+    {
+        $raw_sql = file_get_contents("database/seeders/statements.sql");
         $sql_statements = explode(";",$raw_sql);
 
         foreach($sql_statements as $sql_statement)
         {
             if(!empty($sql_statement))
             {
-                DB::statement(trim($sql_statement). ";");
+                DB::statement(trim($sql_statement) . ";");
             }
         }
-        self::populate_database();
+    }
+    
+    public function seed_database()
+    {
+        self::refresh_data();
+        $this->call([
+            TripSeeder::class,
+            StopSeeder::class,
+        ]);
     }
 
-    public static function populate_database()
+    public static function refresh_data()
     {
-        $files = glob('database/seeders/data/*');
+        $files = glob(get_storage_path("*"));
         foreach($files as $file)
         {
             if(is_file($file)) 
@@ -39,26 +53,22 @@ class DatabaseSeeder extends Seeder
                 unlink($file);
             }
         }
-        $dir = database_path('seeders/data');
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        $target = database_path('seeders/data/budapest_gtfs.zip');
-        $in = fopen("https://bkk.hu/gtfs/budapest_gtfs.zip", 'rb');
-        $out = fopen($target, 'wb');
+
+        $in = fopen("https://bkk.hu/gtfs/budapest_gtfs.zip", "rb");
+        $out = fopen(get_storage_path("budapest_gtfs.zip"), "wb");
         stream_copy_to_stream($in, $out);
         fclose($in);
         fclose($out);
-        sleep(5);
+
+        sleep(3);
 
         $zip = new \ZipArchive;
-        if ($zip->open(database_path("seeders/data") .'/budapest_gtfs.zip') === TRUE) 
+        if ($zip->open(get_storage_path("budapest_gtfs.zip")) === TRUE) 
         {
-            $zip->extractTo(database_path("seeders/data"));
+            $zip->extractTo(get_storage_path(""));
             $zip->close();
         } else {
             echo 'failed';
         }
-        
     }
 }

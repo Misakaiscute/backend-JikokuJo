@@ -1,4 +1,4 @@
-CREATE TABLE `trips` (
+CREATE TABLE IF NOT EXISTS `trips` (
   `id` VARCHAR(255) NOT NULL,
   `route_id` VARCHAR(255) NOT NULL,
   `service_id` VARCHAR(255) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE `trips` (
   `bikes_allowed` TINYINT NOT NULL,
   PRIMARY KEY (`id`, `service_id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `stops` (
+CREATE TABLE IF NOT EXISTS `stops` (
   `id` INT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `lat` DOUBLE NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `stops` (
   `parent_station` INT NOT NULL,
   `wheelchair_boarding` TINYINT NOT NULL
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `stop_times` (
+CREATE TABLE IF NOT EXISTS `stop_times` (
   `trip_id` VARCHAR(255) NOT NULL,
   `stop_id` INT NOT NULL,
   `arrival_time` SMALLINT NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `stop_times` (
   FOREIGN KEY (`trip_id`) REFERENCES `trips`(`id`),
   FOREIGN KEY (`stop_id`) REFERENCES `stops`(`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `shapes` (
+CREATE TABLE IF NOT EXISTS `shapes` (
   `id` VARCHAR(255) NOT NULL,
   `pt_sequence` INT NOT NULL,
   `pt_lat` DOUBLE NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE `shapes` (
   `dist_traveled` DOUBLE NOT NULL,
   PRIMARY KEY (`id`, `pt_sequence`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `agency` (
+CREATE TABLE IF NOT EXISTS `agency` (
   `id` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `url` VARCHAR(255) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `agency` (
   `phone` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `routes` (
+CREATE TABLE IF NOT EXISTS `routes` (
   `id` varchar(255) NOT NULL,
   `agency_id` VARCHAR(255) NOT NULL,
   `short_name` VARCHAR(255),
@@ -65,7 +65,7 @@ CREATE TABLE `routes` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`agency_id`) REFERENCES `agency`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `pathways` (
+CREATE TABLE IF NOT EXISTS `pathways` (
   `id` INT NOT NULL,
   `mode` TINYINT NOT NULL,
   `is_bidirectional` BOOLEAN NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE `pathways` (
   FOREIGN KEY (`from_stop_id`) REFERENCES `stops`(`id`),
   FOREIGN KEY (`to_stop_id`) REFERENCES `stops`(`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `feed_info` (
+CREATE TABLE IF NOT EXISTS `feed_info` (
   `id` VARCHAR(255) NOT NULL,
   `publisher_name` VARCHAR(255) NOT NULL,
   `publisher_url` VARCHAR(255) NOT NULL,
@@ -86,12 +86,12 @@ CREATE TABLE `feed_info` (
   `version` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `calendar_dates` (
+CREATE TABLE IF NOT EXISTS `calendar_dates` (
   `service_id` VARCHAR(255) NOT NULL,
   `date` INT NOT NULL,
   `exception_type` TINYINT NOT NULL
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` INT AUTO_INCREMENT,
   `first_name` VARCHAR(255) DEFAULT NULL,
   `second_name` VARCHAR(255) DEFAULT NULL,

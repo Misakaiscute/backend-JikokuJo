@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 
-// Schedule::call(DatabaseSeeder::populate_database())
+// Schedule::call(DatabaseSeeder::seed_database())
 //     ->twiceDaily(0, 12)
 //     ->when(function () {
 //         $datesInDatabase = DB::table('feed_info')->pluck('feed_end_date');
