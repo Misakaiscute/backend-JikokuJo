@@ -30,20 +30,28 @@ class StopSeeder extends Seeder
                 "lat" => $item[2],
                 "lon" => $item[3],
                 "code" => $item[4],
-                "locations_type" => ($item[5] === '' ? 0 : $item[5]),
+                "location_type" => ($item[5] === '' ? 0 : $item[5]),
                 "location_sub_type" => ($item[6] === '' ? 0 : $item[6]),
                 "parent_station" => ($item[7] === '' ? 0 : $item[7]),
-                "wheelchair_borading" => ($item[8] === '' ? 0 : $item[8])
+                "wheelchair_boarding" => ($item[8] === '' ? 0 : $item[8])
             ];
 
             if (count($batch) >= $batchSize) {
-                DB::table("trips")->updateOrInsert($batch);
+                DB::table("stops")->upsert(
+                    $batch,
+                    ['id'],
+                    ['name', 'lat', 'lon', 'code', 'location_type', 'location_sub_type', 'parent_station', 'wheelchair_boarding']
+                );
                 $batch = [];
             }
         }
 
         if (!empty($batch)) {
-            DB::table("trips")->updateOrInsert($batch);
+            DB::table("stops")->upsert(
+                $batch,
+                ['id'],
+                ['name', 'lat', 'lon', 'code', 'location_type', 'location_sub_type', 'parent_station', 'wheelchair_boarding']
+            );
         }
 
         fclose($handle);

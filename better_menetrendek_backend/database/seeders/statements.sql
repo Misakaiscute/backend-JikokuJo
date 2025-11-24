@@ -11,19 +11,19 @@ CREATE TABLE IF NOT EXISTS `trips` (
   PRIMARY KEY (`id`, `service_id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `stops` (
-  `id` INT PRIMARY KEY,
+  `id` VARCHAR(255) PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `lat` DOUBLE NOT NULL,
   `lon` DOUBLE NOT NULL,
   `code` VARCHAR(255) NOT NULL,
   `location_type` TINYINT NOT NULL,
-  `location_sub_type` TINYINT NOT NULL,
-  `parent_station` INT NOT NULL,
+  `location_sub_type` VARCHAR(255) NOT NULL,
+  `parent_station` VARCHAR(255) NOT NULL,
   `wheelchair_boarding` TINYINT NOT NULL
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `stop_times` (
   `trip_id` VARCHAR(255) NOT NULL,
-  `stop_id` INT NOT NULL,
+  `stop_id` VARCHAR(255) NOT NULL,
   `arrival_time` SMALLINT NOT NULL,
   `departure_time` SMALLINT NOT NULL,
   `stop_sequence` TINYINT NOT NULL,
@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS `pathways` (
   `id` INT NOT NULL,
   `mode` TINYINT NOT NULL,
   `is_bidirectional` BOOLEAN NOT NULL,
-  `from_stop_id` INT NOT NULL,
-  `to_stop_id` INT NOT NULL,
+  `from_stop_id` VARCHAR(255) NOT NULL,
+  `to_stop_id` VARCHAR(255) NOT NULL,
   `traversal_time` INT NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`from_stop_id`) REFERENCES `stops`(`id`),

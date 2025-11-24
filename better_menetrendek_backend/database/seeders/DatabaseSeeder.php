@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\TripSeeder;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +11,6 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         self::create_database();
@@ -40,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TripSeeder::class,
             StopSeeder::class,
+            StopTimesSeeder::class
         ]);
     }
 

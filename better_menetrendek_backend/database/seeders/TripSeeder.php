@@ -39,13 +39,21 @@ class TripSeeder extends Seeder
             ];
 
             if (count($batch) >= $batchSize) {
-                DB::table("trips")->updateOrInsert($batch);
+                DB::table("trips")->upsert(
+                    $batch,
+                    ['id', 'service_id'],
+                    ['route_id', 'trip_headsign', 'direction_id', 'block_id', 'shape_id', 'wheelchair_accessible', 'bikes_allowed']
+                );
                 $batch = [];
             }
         }
 
         if (!empty($batch)) {
-            DB::table("trips")->updateOrInsert($batch);
+            DB::table("trips")->upsert(
+                $batch,
+                ['id', 'service_id'],
+                ['route_id', 'trip_headsign', 'direction_id', 'block_id', 'shape_id', 'wheelchair_accessible', 'bikes_allowed']
+            );
         }
 
         fclose($handle);
