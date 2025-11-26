@@ -28,12 +28,10 @@ class RouteSeeder extends Seeder
                 "short_name" => $item[2],
                 "long_name" => $item[3],
                 "type" => ($item[4] === '' ? 0 : $item[4]),
-                "desc" => preg_replace_callback('/"([^"]*)"/', function($matches) {
-                    return str_replace(';', ',', $matches[1]);
-                }, $item[5]),
-                "color" => $item[4],
-                "text_color" => $item[4],
-                "sort_order" => ($item[4] === '' ? 0 : $item[4]),
+                "desc" => replace_commas_in_quotes($item[5], ","),
+                "color" => $item[6],
+                "text_color" => $item[7],
+                "sort_order" => ($item[8] === '' ? 0 : $item[8]),
             ];
 
             if (count($batch) >= $batchSize) {

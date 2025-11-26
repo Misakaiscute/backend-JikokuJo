@@ -24,9 +24,7 @@ class StopSeeder extends Seeder
 
             $batch[] = [
                 "id" => $item[0],
-                "name" => preg_replace_callback('/"([^"]*)"/', function($matches) {
-                    return str_replace(';', ',', $matches[1]);
-                }, $item[1]),
+                "name" => replace_commas_in_quotes($item[1], ","),
                 "lat" => $item[2],
                 "lon" => $item[3],
                 "code" => $item[4],

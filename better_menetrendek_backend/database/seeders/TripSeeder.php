@@ -28,9 +28,7 @@ class TripSeeder extends Seeder
                 "route_id" => $item[0],
                 "id" => $item[1],
                 "service_id" => $item[2],
-                "trip_headsign" => preg_replace_callback('/"([^"]*)"/', function($matches) {
-                    return str_replace(';', ',', $matches[1]);
-                }, $item[3]),
+                "trip_headsign" => replace_commas_in_quotes($item[3], ","),
                 "direction_id" => $item[4],
                 "block_id" => $item[5],
                 "shape_id" => $item[6],
