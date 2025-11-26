@@ -17,7 +17,7 @@ class TripSeeder extends Seeder
         $handle = fopen(get_storage_path("trips.txt"), 'r');
 
         $batch = [];
-        $batchSize = 500;
+        $batchSize = 1500;
 
         $skip = true;
         while (($line = fgets($handle)) !== false) {
