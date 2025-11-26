@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `agency` (
   `id` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `url` VARCHAR(255) NOT NULL,
-  `timezone` VARCHAR(255) NOT NULL,
+  `time_zone` VARCHAR(255) NOT NULL,
   `lang` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `routes` (
   FOREIGN KEY (`agency_id`) REFERENCES `agency`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `pathways` (
-  `id` INT NOT NULL,
+  `id` VARCHAR(255) NOT NULL,
   `mode` TINYINT NOT NULL,
   `is_bidirectional` BOOLEAN NOT NULL,
   `from_stop_id` VARCHAR(255) NOT NULL,

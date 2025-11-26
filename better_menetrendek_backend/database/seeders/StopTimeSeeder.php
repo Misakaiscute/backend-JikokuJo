@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class StopTimesSeeder extends Seeder
+class StopTimeSeeder extends Seeder
 {
     function minutes($time){
         $time = explode(':', $time);
@@ -19,7 +19,7 @@ class StopTimesSeeder extends Seeder
         $handle = fopen(get_storage_path("stop_times.txt"), 'r');
 
         $batch = [];
-        $batchSize = 5000;
+        $batchSize = 50000;
 
         $skip = true;
         while (($line = fgets($handle)) !== false) {
