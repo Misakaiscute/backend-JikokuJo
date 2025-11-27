@@ -18,9 +18,13 @@ class PathwaySeeder extends Seeder
         $batchSize = 1000;
 
         $skip = true;
-        while (($line = fgets($handle)) !== false) {
-            if($skip) { $skip = false; continue; }
+        while (($line = fgets($handle, 65536)) !== false) {
+            if($skip) { $skip = false; continue; }        
             $item = explode(",", trim($line));
+        
+            if (count($item) < 9) {
+                continue;
+            }
 
             $batch[] = [
                 "id" => $item[0],

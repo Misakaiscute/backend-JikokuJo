@@ -25,7 +25,9 @@ class StopTimeSeeder extends Seeder
         $batch = [];
         $batchSize = 7280;
 
+        $skip = true;
         while (($line = fgets($handle, 65536)) !== false) {
+            if($skip) { $skip = false; continue; }        
             $item = explode(",", trim($line));
 
             $batch[] = [
@@ -34,7 +36,7 @@ class StopTimeSeeder extends Seeder
                 "arrival_time" => self::minutes($item[2]),
                 "departure_time" => self::minutes($item[3]),
                 "stop_sequence" => $item[4],
-                "stop_headsign" => replace_commas_in_quotes($item[5], ","),
+                "stop_headsign" => (strpos($item[5], ";") === false ? trim($item[5], '"') : switch_commas($item[5], true)),
                 "pickup_type" => $item[6] ?: 0,
                 "drop_off_type" => $item[7] ?: 0,
                 "shape_dist_traveled" => $item[8]

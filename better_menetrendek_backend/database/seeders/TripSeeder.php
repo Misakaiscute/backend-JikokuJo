@@ -20,15 +20,16 @@ class TripSeeder extends Seeder
         $batchSize = 1500;
 
         $skip = true;
-        while (($line = fgets($handle)) !== false) {
+        while (($line = fgets($handle, 65536)) !== false) {
             if($skip) { $skip = false; continue; }
+                
             $item = explode(",", trim($line));
 
             $batch[] = [
                 "route_id" => $item[0],
                 "id" => $item[1],
                 "service_id" => $item[2],
-                "trip_headsign" => replace_commas_in_quotes($item[3], ","),
+                "trip_headsign" => (strpos($item[3], ";") === false ? trim($item[3], '"') : switch_commas($item[3], true)),
                 "direction_id" => $item[4],
                 "block_id" => $item[5],
                 "shape_id" => $item[6],

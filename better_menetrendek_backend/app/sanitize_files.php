@@ -1,6 +1,7 @@
 <?php
 
-function get_storage_path($addition) {
+function get_storage_path($addition) 
+{
     if($addition == "")
     {
         return config('custom.storage_upload_dir');
@@ -11,33 +12,51 @@ function get_storage_path($addition) {
     }
 }
 
-function replace_commas_in_quotes(string $line, string $replacement): string
+function switch_commas(string $input, bool $stripQuotes = false): string
 {
-    $len = strlen($line);
-    $out = [];
-    $outIndex = 0;
-    $inQuotes = false;
-    $searchChar = ($replacement === ';') ? ',' : ';';
-    $replaceChar = $replacement;
+    $out = '';
+    $len = strlen($input);
 
     for ($i = 0; $i < $len; $i++) 
     {
-        $ch = $line[$i];
+        $ch = $input[$i];
 
-        if ($ch === '"') {
-            $inQuotes = !$inQuotes;
-            $out[$outIndex++] = '"';
-        } elseif ($ch === $searchChar && $inQuotes) {
-            $out[$outIndex++] = $replaceChar;
-        } else {
-            $out[$outIndex++] = $ch;
-        }
+        if ($stripQuotes) 
+        {
+            if ($ch === ';') 
+            {
+                $out .= ',';
+            } 
+            elseif ($ch !== '"') 
+            {
+                $out .= $ch;
+            }
+        } 
+        else 
+        {
+            static $inQuotes = false;
+
+            if ($ch === '"') 
+            {
+                $inQuotes = !$inQuotes;
+                $out .= $ch;
+            } 
+            elseif ($inQuotes && $ch === ',') 
+            {
+                $out .= ';';
+            } 
+            else 
+            {
+                $out .= $ch;
+            }
     }
-
-    return implode('', $out);
 }
 
-function sanitize_input(string $filename)
+return $out;
+
+}
+
+function sanitize_input(string $filename): void
 {
     $inputPath  = get_storage_path($filename);
     $outputPath = get_storage_path('output.tmp');
@@ -59,7 +78,7 @@ function sanitize_input(string $filename)
         $line = fgets($in, $bufferSize);
         if ($line === false) break;
 
-        $line = replace_commas_in_quotes($line, ";");
+        $line = switch_commas($line);
 
         $buffer .= $line;
         $bufferLineCount++;

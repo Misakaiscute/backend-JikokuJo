@@ -18,13 +18,17 @@ class StopSeeder extends Seeder
         $batchSize = 500;
 
         $skip = true;
-        while (($line = fgets($handle)) !== false) {
-            if($skip) { $skip = false; continue; }
+        while (($line = fgets($handle, 65536)) !== false) {
+            if($skip) { $skip = false; continue; }        
             $item = explode(",", trim($line));
+        
+            if (count($item) < 9) {
+                continue;
+            }
 
             $batch[] = [
                 "id" => $item[0],
-                "name" => replace_commas_in_quotes($item[1], ","),
+                "name" => (strpos($item[1], ";") === false ? trim($item[1], '"') : switch_commas($item[1], true)),
                 "lat" => $item[2],
                 "lon" => $item[3],
                 "code" => $item[4],

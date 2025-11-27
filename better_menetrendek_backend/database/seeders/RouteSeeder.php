@@ -18,9 +18,13 @@ class RouteSeeder extends Seeder
         $batchSize = 1000;
 
         $skip = true;
-        while (($line = fgets($handle)) !== false) {
-            if($skip) { $skip = false; continue; }
+        while (($line = fgets($handle, 65536)) !== false) {
+            if($skip) { $skip = false; continue; }        
             $item = explode(",", trim($line));
+        
+            if (count($item) < 9) {
+                continue;
+            }
 
             $batch[] = [
                 "agency_id" => $item[0],
@@ -28,7 +32,7 @@ class RouteSeeder extends Seeder
                 "short_name" => $item[2],
                 "long_name" => $item[3],
                 "type" => ($item[4] === '' ? 0 : $item[4]),
-                "desc" => replace_commas_in_quotes($item[5], ","),
+                "desc" => (strpos($item[5], ";") === false ? trim($item[5], '"') : switch_commas($item[5], true)),
                 "color" => $item[6],
                 "text_color" => $item[7],
                 "sort_order" => ($item[8] === '' ? 0 : $item[8]),
