@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TripSeeder::class,
             StopSeeder::class,
-            // StopTimeSeeder::class,
+            StopTimeSeeder::class,
             ShapeSeeder::class,
             InfoSeeder::class,
             RouteSeeder::class,

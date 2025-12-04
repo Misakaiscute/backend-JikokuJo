@@ -1,0 +1,16 @@
+meta {
+  name: route_stops
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{api_url}}/route_stops/20E
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

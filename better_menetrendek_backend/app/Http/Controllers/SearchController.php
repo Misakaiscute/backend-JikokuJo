@@ -8,38 +8,31 @@ use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
-    public function searchable()
-    {
-        try {
-            $stops = DB::table('stops')
-                ->select('name', DB::raw('GROUP_CONCAT(id) as ids'))
-                ->groupBy('name')
-                ->get();
-        
-            $routeNames = DB::table("routes")->pluck("short_name");
-        
-            return response()->json([
-                'data' => [
-                    'stops' => $stops,
-                    'routes'=> $routeNames,
-                ],
-                'errors' => []
-            ], 200);          
-        }
-        catch(\Exception $e) 
-        {
-            $stops = DB::table("stops")->distinct()->pluck("name", "id");
-            $routeNames = DB::table("routes")->distinct()->pluck("short_name");
-        
-            return response()->json([
-                'data' => [
-                    'stops' => $stops,
-                    'routes'=> $routeNames,
-                ],
-                'errors' => [
-                    'message' => $e->getMessage()
-                ]
-            ], 500);
-        }
+    public function searchables()
+{
+    $stops = DB::table('stops')
+        ->select('name', DB::raw('GROUP_CONCAT(id) as ids'))
+        ->groupBy('name')
+        ->get();
+
+    $routeNames = DB::table('routes')->pluck('short_name');
+
+    if ($stops->isEmpty() && $routeNames->isEmpty()) {
+        return response()->json([
+            'data'   => [
+                'stops'  => [],
+                'routes' => []
+            ],
+            'errors' => [['error' => 'No data available']]
+        ], 404);
     }
+
+    return response()->json([
+        'data'   => [
+            'stops'  => $stops,
+            'routes' => $routeNames
+        ],
+        'errors' => []
+    ], 200);
+}
 }
