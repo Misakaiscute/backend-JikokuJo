@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
-    public function searchables()
+    public function queryables()
 {
     $stops = DB::table('stops')
         ->select('name', DB::raw('GROUP_CONCAT(id) as ids'))

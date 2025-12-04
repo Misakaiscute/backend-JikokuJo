@@ -34,14 +34,14 @@ class DatabaseSeeder extends Seeder
     {
         self::refresh_data();
         $this->call([
+            InfoSeeder::class,
+            RouteSeeder::class,
+            ShapeSeeder::class,
             TripSeeder::class,
             StopSeeder::class,
             StopTimeSeeder::class,
-            ShapeSeeder::class,
-            InfoSeeder::class,
-            RouteSeeder::class,
             PathwaySeeder::class,
-            CalendarDateSeeder::class,
+            CalendarDateSeeder::class
         ]);
     }
 

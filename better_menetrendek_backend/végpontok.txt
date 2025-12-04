@@ -10,9 +10,9 @@ járatok(M1, 338)
 
 járat megállói (index)  idt 
 -fizikai megállóhelyek
--shapoes táblából
+-shapoes táblából lot let sequence
 
-megállóhoz tartozó járat 
+megállóhoz tartozó járat
 -járatok amik érintik
 
 egy járat megállójának időpontjai (egy helyszín, több időpont)
