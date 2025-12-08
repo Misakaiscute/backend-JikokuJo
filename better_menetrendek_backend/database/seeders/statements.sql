@@ -99,7 +99,8 @@ CREATE TABLE IF NOT EXISTS `feed_info` (
 CREATE TABLE IF NOT EXISTS `calendar_dates` (
   `service_id` VARCHAR(255) NOT NULL,
   `date` INT NOT NULL,
-  `exception_type` TINYINT NOT NULL
+  `exception_type` TINYINT NOT NULL,
+  FOREIGN KEY (`service_id`) REFERENCES `trips`(`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `users` (

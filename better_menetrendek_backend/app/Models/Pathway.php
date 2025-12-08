@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PathwayModel extends Model
+class Pathway extends Model
 {
     public $incrementing = false;
     protected $keyType = 'string';
@@ -30,12 +30,12 @@ class PathwayModel extends Model
 
     public function fromStop()
     {
-        return $this->belongsTo(StopModel::class, 'from_stop_id', 'id');
+        return $this->belongsTo(Stop::class, 'from_stop_id', 'id');
     }
 
     public function toStop()
     {
-        return $this->belongsTo(StopModel::class, 'to_stop_id', 'id');
+        return $this->belongsTo(Stop::class, 'to_stop_id', 'id');
     }
 
     public function stops()

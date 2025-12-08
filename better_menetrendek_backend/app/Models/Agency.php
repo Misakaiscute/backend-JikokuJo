@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AgencyModel extends Model
+class Agency extends Model
 {
     public $incrementing = false;
     protected $keyType = 'string';
@@ -17,6 +17,6 @@ class AgencyModel extends Model
 
     public function routes()
     {
-        return $this->hasMany(RouteModel::class, 'agency_id');
+        return $this->hasMany(Route::class, 'agency_id');
     }
 }

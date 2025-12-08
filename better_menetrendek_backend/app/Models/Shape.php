@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ShapeModel extends Model
+class Shape extends Model
 {
     public $incrementing = false;
     public $timestamps = false;
@@ -30,7 +30,7 @@ class ShapeModel extends Model
 
     public function trips()
     {
-        return $this->hasMany(TripModel::class, 'shape_id', 'id');
+        return $this->hasMany(Trip::class, 'shape_id', 'id');
     }
 
     public function scopeOrdered($query)

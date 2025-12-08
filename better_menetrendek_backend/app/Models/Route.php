@@ -6,7 +6,7 @@ use App\Models\AgencyModel;
 use App\Models\TripModel;
 use Illuminate\Database\Eloquent\Model;
 
-class RouteModel extends Model
+class Route extends Model
 {
     public $incrementing = false;
     protected $keyType = 'string';
@@ -20,11 +20,11 @@ class RouteModel extends Model
 
     public function agency()
     {
-        return $this->belongsTo(AgencyModel::class, 'agency_id');
+        return $this->belongsTo(Agency::class, 'agency_id');
     }
 
     public function trips()
     {
-        return $this->hasMany(TripModel::class, 'route_id');
+        return $this->hasMany(Trip::class, 'route_id');
     }
 }

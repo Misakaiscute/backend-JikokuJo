@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TripModel extends Model
+class Trip extends Model
 {
     public $incrementing = false;
     protected $keyType = 'string';
@@ -30,16 +30,16 @@ class TripModel extends Model
 
     public function route()
     {
-        return $this->belongsTo(RouteModel::class, 'route_id');
+        return $this->belongsTo(Route::class, 'route_id');
     }
 
     public function shape()
     {
-        return $this->belongsTo(ShapeModel::class, 'shape_id', 'id');
+        return $this->belongsTo(Shape::class, 'shape_id', 'id');
     }
 
     public function stopTimes()
     {
-        return $this->hasMany(StopTimeModel::class, 'trip_id', 'id');
+        return $this->hasMany(StopTime::class, 'trip_id', 'id');
     }
 }

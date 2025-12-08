@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class StopTimeModel extends Model
+class StopTime extends Model
 {
     public $incrementing = false;
     public $timestamps = false;
@@ -26,11 +26,11 @@ class StopTimeModel extends Model
 
     public function trip()
     {
-        return $this->belongsTo(TripModel::class, 'trip_id', 'id');
+        return $this->belongsTo(Trip::class, 'trip_id', 'id');
     }
 
     public function stop()
     {
-        return $this->belongsTo(StopModel::class, 'stop_id');
+        return $this->belongsTo(Stop::class, 'stop_id');
     }
 }
