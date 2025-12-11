@@ -42,4 +42,10 @@ class Trip extends Model
     {
         return $this->hasMany(StopTime::class, 'trip_id', 'id');
     }
+
+    public function shapePoints()
+    {
+        return $this->hasMany(Shape::class, 'id', 'shape_id')
+                    ->orderBy('pt_sequence');
+    }
 }

@@ -2,20 +2,20 @@ menetrendekhez:
 
 összes megálló neve 
 
-searchcontroller----- 2 tomb data, error
+searchcontroller  --------
 -csak nevek - csak egyedi (group by)
 -idk melle
-járatok(M1, 338)
+járatok(M1, 338) ---------
 -összes
 
-járat megállói (index)  idt 
+járat megállói (index)  idt  ------------
 -fizikai megállóhelyek
 -shapoes táblából lot let sequence
 
 megállóhoz tartozó járat
 -járatok amik érintik
 
-egy járat megállójának időpontjai (egy helyszín, több időpont)
+egy járat megállójának időpontjai (egy helyszín, több időpont)  -------
 
 
 útvonaltervezőhőz:

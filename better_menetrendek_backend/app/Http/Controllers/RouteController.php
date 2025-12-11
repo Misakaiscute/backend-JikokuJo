@@ -12,7 +12,7 @@ class RouteController extends Controller
     {
         $query = Route::with([
             'trips.stopTimes.stop',
-            'trips.shape'
+            'trips.shapePoints'
         ])->where('id', $routeId);
 
         $route = $query->first();
@@ -41,11 +41,21 @@ class RouteController extends Controller
                     ])
                     ->values();
 
+                $shapes = $firstTrip->shapePoints
+                    ->map(fn($point) => [
+                        'lat'           => $point->pt_lat,
+                        'lon'           => $point->pt_lon,
+                        'sequence'      => $point->pt_sequence,
+                        'dist_traveled' => $point->dist_traveled,
+                    ])
+                    ->values();
+
                 return [
                     'shape_id'      => $shapeId,
                     'direction_id'  => $firstTrip->direction_id,
                     'trip_headsign' => $firstTrip->trip_headsign,
                     'stops'         => $stops,
+                    'shapes'       => $shapes,
                     'trip_count'    => $tripsInThisPattern->count(),
                 ];
             })
@@ -53,120 +63,94 @@ class RouteController extends Controller
 
         return response()->json([
             'data' => [
-                'route_id'  => $routeId,
-                'patterns'  => $patterns
+                'route_id' => $routeId,
+                'patterns' => $patterns
             ],
             'errors' => []
         ]);
     }
 
-
-    public function getInfoByRouteId(string $routeId)
-    {
-        $tripsWithArrivals = Trip::with(['stopTimes' => function ($query) {
-            $query->select('trip_id', 'arrival_time', 'stop_sequence');
-        }])
-        ->select('id', 'route_id', 'service_id', 'trip_headsign', 'direction_id', 'shape_id')
-        ->where('route_id', $routeId)
-        ->orderBy('id')
-        ->get()
-        ->map(function ($trip) {
-            return response()->json([
-                'id'       => $trip->id,
-                'route_id'      => $trip->route_id,
-                'service_id'    => $trip->service_id,
-                'trip_headsign' => $trip->trip_headsign,
-                'direction_id'  => $trip->direction_id,
-                'shape_id'      => $trip->shape_id,
-                'stop_times'    => $trip->stopTimes->sortBy('stop_sequence')->pluck('arrival_time', 'stop_sequence')->all()
-            ]);
-        });
-    } 
-
-
-    public function getArrivalTimeByRouteId(string $routeId, ?string $stopId = null)
+    public function getArrivalTimesByRouteId(string $routeId, ?string $stopId = null, ?string $date = null)
     {
         $targetStopId = $stopId;
+        $targetDate = $date ?? now()->format('Ymd');
+
+        $feedInfo = DB::table('feed_info')->first();
+        
+        if ($feedInfo && ($targetDate < $feedInfo->start_date || $targetDate > $feedInfo->end_date)) {
+            return response()->json([
+                'data'   => [
+                    'times'  => [],
+                    'route' => null
+                ],
+                'errors' => [['error' => 'Date is outside feed validity period']]
+            ], 400);
+        }
 
         if (!$targetStopId) {
             $targetStopId = DB::table('stop_times')
                 ->join('trips', 'stop_times.trip_id', '=', 'trips.id')
                 ->where('trips.route_id', $routeId)
-                ->min('stop_times.stop_sequence')
-                ? DB::table('stop_times')
-                    ->join('trips', 'stop_times.trip_id', '=', 'trips.id')
-                    ->where('trips.route_id', $routeId)
-                    ->orderBy('stop_times.stop_sequence')
-                    ->value('stop_times.id')
-                : null;
+                ->orderBy('stop_times.stop_sequence')
+                ->value('stop_times.stop_id');
         }
 
         if (!$targetStopId) {
             return response()->json([
                 'data'   => [
-                    'stops'  => [],
-                    'routes' => []
+                    'times'  => [],
+                    'route' => null
                 ],
                 'errors' => [['error' => 'Route not found or has no trips']]
             ], 404);
         }
 
-        $trips = Trip::query()
+        $times = DB::table('stop_times')
+            ->join('trips', 'stop_times.trip_id', '=', 'trips.id')
+            ->where('trips.route_id', $routeId)
+            ->where('stop_times.stop_id', $targetStopId)
             ->select([
-                'trips.id',
                 'trips.shape_id',
                 'trips.trip_headsign',
-                'trips.direction_id',
-                'stop_times.arrival_time',
-                'stop_times.departure_time',
-                'stop_times.stop_sequence'
+                'stop_times.arrival_time'
             ])
-            ->join('stop_times', function ($join) use ($targetStopId) {
-                $join->on('trips.id', '=', 'stop_times.trip_id')
-                    ->where('stop_times.stop_id', '=', $targetStopId);
-            })
-            ->where('trips.route_id', $routeId)
+            ->distinct()
             ->orderBy('stop_times.arrival_time')
             ->get()
-            ->map(function ($trip) use ($targetStopId) {
+            ->map(function ($item) {
                 return [
-                    'trip_id'         => $trip->id,
-                    'shape_id'        => $trip->shape_id ?: null,
-                    'trip_headsign'   => $trip->trip_headsign,
-                    'direction_id'    => $trip->direction_id,
-                    'arrival_time'    => $trip->arrival_time,
-                    'departure_time'  => $trip->departure_time,
-                    'stop_id'         => $targetStopId,
-                    'stop_sequence'   => $trip->stop_sequence,
+                    'shape_id'      => $item->shape_id ?: null,
+                    'trip_headsign' => $item->trip_headsign,
+                    'arrival_time'  => $item->arrival_time,
                 ];
             });
 
         $routeInfo = DB::table('routes')
-            ->where('route_id', $routeId)
-            ->select('route_short_name', 'route_long_name')
+            ->where('id', $routeId)
+            ->select('short_name', 'long_name')
             ->first();
 
-        $routeNames = $routeInfo ? [[
+        $route = $routeInfo ? [
             'route_id'         => $routeId,
-            'route_short_name' => $routeInfo->route_short_name,
-            'route_long_name'  => $routeInfo->route_long_name,
-        ]] : [];
+            'short_name' => $routeInfo->short_name,
+            'long_name'  => $routeInfo->long_name,
+            'date'             => $targetDate
+        ] : null;
 
-        if ($trips->isEmpty() && empty($routeNames)) {
-            return response()
-                ->json([
-                    'data'   => [
-                        'stops'  => [],
-                        'routes' => []
-                    ],
-                    'errors' => [['error' => 'No data available']]
-                ], 404);
+        if ($times->isEmpty() && !$route) {
+            return response()->json([
+                'data'   => [
+                    'times'  => [],
+                    'route' => null
+                ],
+                'errors' => [['error' => 'No data available']]
+            ], 404);
         }
 
         return response()->json([
             'data'   => [
-                'stops'  => $trips->toArray(),
-                'routes' => $routeNames
+                'times'  => $times->toArray(),
+                'route' => $route
             ],
             'errors' => []
         ], 200);

@@ -37,4 +37,10 @@ class Shape extends Model
     {
         return $query->orderBy('pt_sequence');
     }
+
+    public function shapePoints()
+    {
+        return $this->hasMany(Shape::class, 'id', 'shape_id')
+                    ->ordered();
+    }
 }
