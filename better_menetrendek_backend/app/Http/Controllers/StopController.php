@@ -10,12 +10,6 @@ class StopController extends Controller
 {
     public function getRoutesForStopId(string $stopId)
     {
-        \Log::info('Requested stop_id: ' . $stopId);
-        $count = DB::table('stop_times')->where('stop_id', $stopId)->count();
-        \Log::info('Stop times count for this stop: ' . $count);
-
-
-
         $results = DB::table('stop_times as st')
             ->join('trips as t', 'st.trip_id', '=', 't.id')
             ->join('routes as r', 't.route_id', '=', 'r.id')
