@@ -23,13 +23,9 @@ class StopController extends Controller
             ->select([
                 'r.id',
                 'r.short_name',
-                'r.long_name',
                 'r.type',
                 'st.arrival_time',
-                'st.departure_time',
-                'st.stop_sequence',
                 't.shape_id',
-                't.id',
                 't.trip_headsign'
             ])
             ->orderBy('r.short_name')
