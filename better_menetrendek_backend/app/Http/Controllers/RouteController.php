@@ -20,8 +20,9 @@ class RouteController extends Controller
         if (!$route) {
             return response()->json([
                 'data'   => ['patterns' => []],
-                'errors' => [['error' => 'Route not found']]
-            ], 404);
+                'errors' => ['Route not found']
+            ], 404, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $patterns = $route->trips
@@ -66,7 +67,8 @@ class RouteController extends Controller
                 'route_id' => $routeId,
                 'patterns' => $patterns
             ],
-            'errors' => []
+            'errors' => [], 200, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
         ]);
     }
 
@@ -83,8 +85,9 @@ class RouteController extends Controller
                     'times'  => [],
                     'route' => null
                 ],
-                'errors' => [['error' => 'Date is outside feed validity period']]
-            ], 400);
+                'errors' => ['Date is outside feed validity period']
+            ], 400, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         if (!$targetStopId) {
@@ -101,8 +104,9 @@ class RouteController extends Controller
                     'times'  => [],
                     'route' => null
                 ],
-                'errors' => [['error' => 'Route not found or has no trips']]
-            ], 404);
+                'errors' => ['Route not found or has no trips']
+            ], 404, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $times = DB::table('stop_times')
@@ -143,8 +147,9 @@ class RouteController extends Controller
                     'times'  => [],
                     'route' => null
                 ],
-                'errors' => [['error' => 'No data available']]
-            ], 404);
+                'errors' => ['No data available']
+            ], 404, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         return response()->json([
@@ -153,6 +158,7 @@ class RouteController extends Controller
                 'route' => $route
             ],
             'errors' => []
-        ], 200);
+        ], 200, [],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }

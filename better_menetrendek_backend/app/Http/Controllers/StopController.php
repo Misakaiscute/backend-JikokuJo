@@ -45,7 +45,8 @@ class StopController extends Controller
     
         return response()->json([
             'data' => $results,
-            'errors' => []
+            'errors' => [], 200, [],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
         ]);
     }
 }
