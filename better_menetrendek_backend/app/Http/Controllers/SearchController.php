@@ -9,7 +9,8 @@ use App\Models\Route;
 
 class SearchController extends Controller
 {
-    private array $routeTypes = [
+    private array $routeTypes = 
+    [
         'busz' => [3, 7, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716],
         'vonat' => [2, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 300],
         'villamos' => [0, 900, 901, 902, 903, 904, 905, 906],
@@ -24,7 +25,8 @@ class SearchController extends Controller
 
     private function getRouteTypeCategory(int $type): string
     {
-        return match (true) {
+        return match (true) 
+        {
             in_array($type, $this->routeTypes['busz'] ?? [])     => 1,
             in_array($type, $this->routeTypes['villamos'] ?? []) => 2,
             in_array($type, $this->routeTypes['metró'] ?? [])    => 3,
@@ -53,7 +55,8 @@ class SearchController extends Controller
                         ];
                     });
 
-        if ($stops->isEmpty() && $routes->isEmpty()) {
+        if ($stops->isEmpty() && $routes->isEmpty()) 
+        {
             return response()->json([
                 'data'   => ['stops' => [], 'routes' => []],
                 'errors' => ['No data available']

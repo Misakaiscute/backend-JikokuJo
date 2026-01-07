@@ -48,4 +48,9 @@ class Trip extends Model
         return $this->hasMany(Shape::class, 'id', 'shape_id')
                     ->orderBy('pt_sequence');
     }
+
+    public function stops() {
+        return $this->hasManyThrough(Stop::class, StopTime::class, 'trip_id', 'stop_id', 'trip_id', 'stop_id')
+                      ->orderBy('stop_times.stop_sequence');
+    }
 }

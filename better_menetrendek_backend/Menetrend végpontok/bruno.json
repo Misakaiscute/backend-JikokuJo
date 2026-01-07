@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Menetrend végpontok",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

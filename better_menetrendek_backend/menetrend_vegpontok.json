@@ -4,38 +4,6 @@
   "items": [
     {
       "type": "http",
-      "name": "getTripsByRouteId_Date",
-      "filename": "getTripsByRouteId_Date.bru",
-      "seq": 5,
-      "settings": {
-        "encodeUrl": true,
-        "timeout": 0
-      },
-      "tags": [],
-      "examples": [],
-      "request": {
-        "url": "{{api_url}}/routes/{routeId}/date/{date}",
-        "method": "GET",
-        "headers": [],
-        "params": [],
-        "body": {
-          "mode": "none",
-          "formUrlEncoded": [],
-          "multipartForm": [],
-          "file": []
-        },
-        "script": {},
-        "vars": {},
-        "assertions": [],
-        "tests": "",
-        "docs": "",
-        "auth": {
-          "mode": "inherit"
-        }
-      }
-    },
-    {
-      "type": "http",
       "name": "getRoutesByStopId",
       "filename": "getRoutesByStopId.bru",
       "seq": 3,
@@ -100,6 +68,38 @@
     },
     {
       "type": "http",
+      "name": "getTripsByRouteId_Date",
+      "filename": "getTripsByRouteId_Date.bru",
+      "seq": 5,
+      "settings": {
+        "encodeUrl": true,
+        "timeout": 0
+      },
+      "tags": [],
+      "examples": [],
+      "request": {
+        "url": "{{api_url}}/routes/0050/time/20260107/1600",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
       "name": "queryables",
       "filename": "queryables.bru",
       "seq": 2,
@@ -141,7 +141,7 @@
             "value": "http://localhost:8000/api",
             "enabled": true,
             "local": false,
-            "uid": "HTsn2z0DwlXoBOlbG4FaB"
+            "uid": "m2YNECTjyjVAbre8hh64q"
           }
         ]
       }
