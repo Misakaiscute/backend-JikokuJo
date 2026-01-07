@@ -7,11 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Pathway extends Model
 {
     public $incrementing = false;
+    public $timestamps = false;
     protected $keyType = 'string';
     protected $table = 'pathways';
     protected $primaryKey = 'id';
-
-    public $timestamps = false;
 
     protected $fillable = [
         'id',

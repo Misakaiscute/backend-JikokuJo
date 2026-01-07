@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Stop extends Model
 {
     public $incrementing = false;
+    public $timestamps = false;
     protected $keyType = 'string';
     protected $table = 'stops';
     protected $primaryKey = 'id';

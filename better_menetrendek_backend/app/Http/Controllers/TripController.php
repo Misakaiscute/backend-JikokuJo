@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Trip;
 
-class StopController extends Controller
+class TripController extends Controller
 {
-    //
+    public function getTripsByRouteId_Date()
+    {
+        //
+    }
 }

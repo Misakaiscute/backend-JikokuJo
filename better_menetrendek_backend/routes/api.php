@@ -2,17 +2,17 @@
 
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\RouteController;
-use App\Http\Controllers\StopController;
+use App\Http\Controllers\TripController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 
 //menetrendkereső
 
 Route::get('/queryables', [SearchController::class, 'queryables']);
 //összes megállónév + járatnevek
-Route::get('/stops/{stopId}/routes', [RouteController::class, 'getRoutesByStopId']);
-//visszaadja az összes járatot + shapeId-t ami érinti a megállót
-Route::get('/routes/{routeId}/fromWhere/{stopId}/date/{date}', [RouteController::class, 'getArrivalTimesByRouteId']);
-//egy route_id-ből és stop_id-ből visszaadja az indulási időt + shapeId-t az adott dátumom
-Route::get('/routes/{routeId}/details/{shapeId}', [RouteController::class, 'getRouteStops']);
-//a routeId és shaeId-val egy konkrét utat ad vissza a shape pontokkal együtt
+Route::get('/stops/{stop_id}/routes', [RouteController::class, 'getRoutesByStopId']);
+//visszaadja az összes járatot ami érint egy megállót
+Route::get('/routes/{route_id}/shapes', [RouteController::class, 'getShapesByRouteId']);
+//visszaadja az összes lehetséges shapejét egy routenak
+Route::get('/routes/{route_d}/date/{date}', [TripController::class, 'getTripsByRouteId_Date']);
+//visszaadja tripet és annak megállóit a routeId és időpont alapján
+
