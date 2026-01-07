@@ -161,4 +161,58 @@ class RouteController extends Controller
         ], 200, [],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
+
+    public function getRoutesByStopId(string $stopId)              //JO
+    {
+        $stop = DB::table('stops')
+        ->where('stop_id', $stopId)
+        ->select('stop_id', 'name', 'lat', 'lon')
+        ->first();
+
+        if (!$stop) {
+            return response()->json([
+                'data' => [],
+                'errors' => [
+                    'message' => 'Nem található megállóhely ezzel a stop_id-val: ' . $stopId,
+                    'suggestion' => 'Ellenőrizd a stop_id-t, lehet elütés vagy régi azonosító.'
+                ]
+            ], 404, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        $hasSchedule = DB::table('stop_times')
+            ->where('stop_id', $stopId)
+            ->exists();
+
+        if (!$hasSchedule) {
+            return response()->json([
+                'data' => [],
+                'errors' => [],
+                'warnings' => [
+                    'message' => 'Nem aktív megállóhely',
+                    'details' => 'A megálló létezik, de nincs menetrend szerinti járat hozzárendelve (pl. tárolóterület, üzem, belső pont).',
+                ]
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        $results = DB::table('stop_times as st')
+            ->join('trips as t', 'st.trip_id', '=', 't.id')
+            ->join('routes as r', 't.route_id', '=', 'r.id')
+            ->where('st.stop_id', $stopId)
+            ->select([
+                'r.id as route_id',
+                'r.short_name',
+                'r.type',
+                'r.color',
+            ])
+            ->distinct()
+            ->orderBy('r.short_name')
+            ->get()
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'data' => $results,
+            'errors' => [],
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
 }

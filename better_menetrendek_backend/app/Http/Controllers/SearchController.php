@@ -36,25 +36,22 @@ class SearchController extends Controller
         }
 
 
-        public function queryables()
+        public function queryables()               //jo
         {
             $stops = DB::table('stops')
-            ->select('name', DB::raw('GROUP_CONCAT(id SEPARATOR ",") as ids'))
-            ->groupBy('name')
-            ->get()
-            ->map(function ($stop) {
-                $stop->ids = empty($stop->ids) ? [] : explode(',', $stop->ids);
-                return $stop;
-            });
+            ->select('name')
+            ->orderBy('name')
+            ->get();
 
             $routes = DB::table('routes')
-            ->select('short_name', 'id', 'type')
+            ->select('short_name', 'id', 'color', 'type')
             ->get()
             ->map(function ($route) {
                 return [
                     'route_id'         => $route->id,
                     'route_short_name' => $route->short_name,
                     'type'             => $this->getRouteTypeCategory($route->type),
+                    'color'            => $route->color,
                 ];
             });
 
