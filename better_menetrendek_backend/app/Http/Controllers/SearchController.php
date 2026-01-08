@@ -40,7 +40,7 @@ class SearchController extends Controller
 
     public function queryables()
     {
-        $stops = Stop::select('name')
+        $stops = Stop::select('name', "id")
         ->orderBy('name')
         ->get();
 
