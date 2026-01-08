@@ -13,6 +13,6 @@ Route::get('/stops/{stop_id}/routes', [RouteController::class, 'getRoutesByStopI
 //visszaadja az összes járatot ami érint egy megállót
 Route::get('/routes/{route_id}/shapes', [RouteController::class, 'getShapesByRouteId']);
 //visszaadja az összes lehetséges shapejét egy routenak
-Route::get('/routes/{route_d}/time/{date}/{time}', [TripController::class, 'getTripsByRouteId_Date']);
-//visszaadja tripet és annak megállóit a routeId és időpont alapján (YYYYMMDD pl 20260107), (HHMM pl 1431)
+Route::get('/routes/{route_id}/time/{date}/{time}', [TripController::class, 'getTripsByRouteId_Date']);
+//visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján (YYYYMMDD pl 20260107), (HHMM pl 1431)
 
