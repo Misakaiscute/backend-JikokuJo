@@ -1,0 +1,26 @@
+meta {
+  name: update_user
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{api_url}}/user/update
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{api_token}}
+}
+
+body:json {
+  {
+    "email": "mateae.demeny@gmail.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

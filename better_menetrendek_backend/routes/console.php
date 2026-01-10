@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schedule;
 
 
 // Schedule::call(DatabaseSeeder::seed_database())
@@ -19,3 +19,5 @@ use Carbon\Carbon;
 //         }
 //         return false;
 //     });
+
+Schedule::command('sanctum:prune-expired --hours=24')->daily();

@@ -100,23 +100,26 @@ CREATE TABLE IF NOT EXISTS `calendar_dates` (
   `service_id` VARCHAR(255) NOT NULL,
   `date` INT NOT NULL,
   `exception_type` TINYINT NOT NULL,
-  FOREIGN KEY (`service_id`) REFERENCES `trips`(`service_id`)
+  PRIMARY KEY (`service_id`, `date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` INT AUTO_INCREMENT,
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
   `first_name` VARCHAR(255) DEFAULT NULL,
   `second_name` VARCHAR(255) DEFAULT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
-  `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
   `password` VARCHAR(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
+  `saved_routes` VARCHAR(600) DEFAULT NULL,
+  UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_trips_route_id      ON trips(route_id);
-CREATE INDEX idx_trips_direction     ON trips(direction_id);
-CREATE INDEX idx_stop_times_trip_id  ON stop_times(trip_id);
-CREATE INDEX idx_stop_times_sequence ON stop_times(stop_sequence);
-CREATE INDEX idx_stop_times_trip_seq ON stop_times(trip_id, stop_sequence);
-CREATE INDEX idx_trips_route_dir     ON trips(route_id, direction_id);
-CREATE INDEX idx_stops_id_name_lat_lon ON stops(id, name, lat, lon);
+CREATE INDEX idx_stop_times_trip_id       ON stop_times (trip_id);
+CREATE INDEX idx_stop_times_trip_seq      ON stop_times (trip_id, stop_sequence);
+CREATE INDEX idx_stop_times_stop_id       ON stop_times (stop_id);
+CREATE INDEX idx_stop_times_stop_time     ON stop_times (stop_id, departure_time);
+CREATE INDEX idx_trips_route_dir          ON trips (route_id, direction_id);
+CREATE INDEX idx_trips_route_id           ON trips (route_id);
+CREATE INDEX idx_calendar_dates_date      ON calendar_dates (date);
+CREATE INDEX idx_stops_name               ON stops (name);
+ALTER TABLE `calendar_dates` ADD INDEX `idx_service_date` (`service_id`, `date`);

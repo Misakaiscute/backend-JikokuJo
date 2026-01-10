@@ -1,0 +1,20 @@
+meta {
+  name: get_user
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{api_url}}/user
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{api_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

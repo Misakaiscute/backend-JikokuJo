@@ -4,6 +4,28 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $id
+ * @property int $pt_sequence
+ * @property float $pt_lat
+ * @property float $pt_lon
+ * @property float $dist_traveled
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Shape> $shapePoints
+ * @property-read int|null $shape_points_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Trip> $trips
+ * @property-read int|null $trips_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape ordered()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape whereDistTraveled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape wherePtLat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape wherePtLon($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape wherePtSequence($value)
+ * @mixin \Eloquent
+ * @mixin IdeHelperShape
+ */
 class Shape extends Model
 {
     public $incrementing = false;

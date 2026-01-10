@@ -1,0 +1,22 @@
+meta {
+  name: register_user
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{api_url}}/user/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "first_name": "Má"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

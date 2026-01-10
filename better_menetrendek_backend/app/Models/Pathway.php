@@ -4,6 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $id
+ * @property int $mode
+ * @property bool $is_bidirectional
+ * @property string $from_stop_id
+ * @property string $to_stop_id
+ * @property int $traversal_time
+ * @property-read \App\Models\Stop $fromStop
+ * @property-read \App\Models\Stop $toStop
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereFromStopId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereIsBidirectional($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereMode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereToStopId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereTraversalTime($value)
+ * @mixin \Eloquent
+ * @mixin IdeHelperPathway
+ */
 class Pathway extends Model
 {
     public $incrementing = false;

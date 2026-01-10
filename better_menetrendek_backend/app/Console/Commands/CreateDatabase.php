@@ -31,9 +31,9 @@ class CreateDatabase extends Command
 
         $this->info("Database connection refreshed and now using `$database`.");
 
-        $this->call('migrate', ['--force' => true]);
-
         $this->call('db:seed', ['--force' => true]);
+
+        $this->call('migrate', ['--force' => true]);
 
         $this->info("Migrations and seeders completed successfully.");
 
