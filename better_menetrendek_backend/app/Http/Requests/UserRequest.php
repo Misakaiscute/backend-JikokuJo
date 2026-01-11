@@ -7,9 +7,6 @@ use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
@@ -22,16 +19,26 @@ class UserRequest extends FormRequest
      */
     public function rules(): array
     {
-        //login
-        if ($this->is('*/login') || $this->isMethod('POST') && str_contains($this->path(), 'login')) {
+        //Toggle favourite route
+        if ($this->is('*/favourites/toggle') || 
+            ($this->isMethod('POST') && str_contains($this->path(), 'favourites/toggle'))) {
+            return [
+                'route_id' => ['required', 'integer', 'exists:routes,id'],
+                'minutes'  => ['required', 'integer', 'min:1', 'max:1440'],
+            ];
+        }
+
+        //Login
+        if ($this->is('*/login') || 
+            ($this->isMethod('POST') && str_contains($this->path(), 'login'))) {
             return [
                 'email'    => ['required', 'email'],
                 'password' => ['required', 'string'],
             ];
         }
 
-        //registration
-        if ($this->isMethod('POST')) {
+        //Registration
+        if ($this->isMethod('POST') && str_contains($this->path(), 'register')) {
             return [
                 'first_name'    => ['required', 'string', 'max:255'],
                 'second_name'   => ['required', 'string', 'max:255'],
@@ -40,7 +47,7 @@ class UserRequest extends FormRequest
             ];
         }
 
-        //update
+        //Update
         return [
             'first_name'    => ['sometimes', 'string', 'max:255'],
             'second_name'   => ['sometimes', 'string', 'max:255'],
@@ -50,6 +57,26 @@ class UserRequest extends FormRequest
                 Rule::unique('users')->ignore($this->user()?->id),
             ],
             'password'      => ['sometimes', 'min:8', 'confirmed'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'route_id.exists' => 'The specified route does not exist.',
+            'minutes.min'     => 'The duration must be at least 1 minute.',
+            'minutes.max'     => 'The duration can be a maximum of 24 hours (1440 minutes).',
+            'first_name.max'  => 'The first name may not be greater than 255 characters.',
+            'first_name.required' => 'The first name field is required.',
+            'second_name.max'  => 'The last name may not be greater than 255 characters.',
+            'second_name.required' => 'The last name field is required.',
+            'email.unique'    => 'A user with this email address already exists.',
+            'email.required'  => 'The email address field is required.',
+            'email.email'     => 'The email address format is invalid.',
+            'password.required' => 'The password field is required.',
+            'password.min'    => 'The password must be at least 8 characters long.',
+            'password.confirmed' => 'The two passwords do not match.',
+            'password_confirmation.required' => 'Please confirm your password by entering it again.',
         ];
     }
 }

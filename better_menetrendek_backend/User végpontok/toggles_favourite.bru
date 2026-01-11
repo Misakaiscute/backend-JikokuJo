@@ -1,11 +1,11 @@
 meta {
-  name: update_user
+  name: toggles_favourite
   type: http
-  seq: 4
+  seq: 5
 }
 
-put {
-  url: {{api_url}}/user/update
+post {
+  url: {{api_url}}/routes/favourite/toggle
   body: json
   auth: bearer
 }
@@ -16,7 +16,8 @@ auth:bearer {
 
 body:json {
   {
-    "email": "mate.demeny@gmail.com"
+    "route_id": "0070",
+    "minutes": 100
   }
 }
 

@@ -4,7 +4,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
+use App\Http\Requests\UserRequest;
 
 //menetrendkereső
 
@@ -20,16 +20,20 @@ Route::get('/routes/{route_id}/time/{date}/{time}', [TripController::class, 'get
 
 //user
 
-Route::post('/user/login', [UserController::class, 'login']);
+Route::post('/user/login/{rememberUser}', [UserController::class, 'login']);
+//rememberUser változó (default false) arra ha a login tokenje 7 napig legyen érvényes (default 1 nap) 
 Route::post('/user/register', [UserController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () 
 {
-    Route::get('/user', function (Request $request) {
+    Route::get('/user', function (UserRequest $request) {
         return $request->user();
     });
     Route::put('/user/update', [UserController::class, 'update']);
-    // Route::post('/user/favourites/{route_id}/{time}', [UserController::class, 'change_favourite_state']);
-    //hozzáadja vagy kiveszi a routeot a kedvencek közül
+    Route::delete('/user/delete', function (UserRequest $request) {
+        return $request->user()->delete;
+    });
+    Route::post('/routes/favourite/toggle', [UserController::class, 'toggleFavouriteRoute']);
+    //hozzáadja vagy kiveszi a routeot a kedvencek közül, a "route_id"-t és a "minutes" változót (indulási ideje percben) json bodyból veszi ki a requestből
 });
 
 

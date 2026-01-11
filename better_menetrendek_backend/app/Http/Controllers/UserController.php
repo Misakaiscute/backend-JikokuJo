@@ -4,37 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UserRequest;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
-    public function login(UserRequest $request)
+    public function login(UserRequest $request, ?bool $rememberUser = false)
     {
         $email = $request->input('email');
         $password = $request->input('password');
-
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
 
         $user = User::where('email', $email)->first();
 
         if (!$user || !Hash::check($password, $password ? $user->password : '')) {
             return response()->json([
                 'message' => 'Invalid email or password',
-            ], 401);
+            ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $user->tokens()->delete();
 
-        $user->token = $user->createToken('access')->plainTextToken;
+        $expiresAt = Carbon::now()->addDays($rememberUser ? 7 : 1);
+
+        $token = $user->createToken(
+            'access_token',
+            ['*'],
+            $expiresAt
+        );
         
         return response()->json([
-            $user->token
-        ]);
+            'token'      => $token->plainTextToken,
+            'expires_at' => $expiresAt->toDateTimeString(),
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function store(UserRequest $request)
@@ -43,7 +46,7 @@ class UserController extends Controller
 
         return response()->json([
             'user' => $user,
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function update(UserRequest $request)
@@ -68,11 +71,70 @@ class UserController extends Controller
                 'second_name',
                 'email',
             ])
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    // public function change_favourite_state(string $route_id, string $time = null)
-    // {
+    public function toggleFavouriteRoute(UserRequest $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string|exists:routes,id',
+            'minutes'  => 'required|integer|min:1',
+        ]);
 
-    // }
+        $user = Auth::user();
+        $routeId = $request->route_id;
+        $minutes = $request->minutes;
+
+        $saved = $this->parseSavedRoutes($user->saved_routes);
+
+        if (isset($saved[$routeId])) 
+        {
+            unset($saved[$routeId]);
+            $action = 'removed';
+        } else {
+            $saved[$routeId] = $minutes;
+            $action = 'added';
+        }
+
+        $user->saved_routes = $this->formatSavedRoutes($saved);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'action'  => $action,
+            'saved_routes' => $saved,
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function parseSavedRoutes(?string $str): array
+    {
+        if (empty($str)) {
+            return [];
+        }
+
+        $pairs = explode(';', $str);
+        $result = [];
+
+        foreach ($pairs as $pair) {
+            if (empty($pair)) continue;
+            [$id, $minutes] = explode(':', $pair, 2);
+            $result[(int)$id] = (int)$minutes;
+        }
+
+        return $result;
+    }
+
+    private function formatSavedRoutes(array $routes): ?string
+    {
+        if (empty($routes)) {
+            return null;
+        }
+
+        $parts = [];
+        foreach ($routes as $id => $minutes) {
+            $parts[] = "$id:$minutes";
+        }
+
+        return implode(';', $parts);
+    }
 }
