@@ -74,6 +74,20 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
+    public function destroy(UserRequest $request)
+    {
+        $user = $request->user();
+
+        $userData = $request->user()->second_name . " " . $request->user()->first_name;
+
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Profile deleted successfully',
+            'user' => $userData
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function toggleFavouriteRoute(UserRequest $request)
     {
         $request->validate([

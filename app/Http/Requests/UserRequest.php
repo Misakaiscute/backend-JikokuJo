@@ -75,7 +75,6 @@ class UserRequest extends FormRequest
             'email.email'     => 'The email address format is invalid.',
             'password.required' => 'The password field is required.',
             'password.min'    => 'The password must be at least 8 characters long.',
-            'password.confirmed' => 'The two passwords do not match.',
             'password_confirmation.required' => 'Please confirm your password by entering it again.',
         ];
     }

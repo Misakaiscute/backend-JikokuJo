@@ -45,57 +45,5 @@ class RouteController extends Controller
         ]);
     }
 
-    public function getRoutesByStopId(string $stop_id)
-    {
-        $stop = Stop::where('id', $stop_id)
-            ->select('id', 'name', 'lat', 'lon')
-            ->first();
-
-        if (!$stop) {
-            return response()->json([
-                'data' => [],
-                'errors' => [
-                    'message' => 'Nem található megállóhely ezzel a stop_id-val: ' . $stop_id,
-                    'suggestion' => 'Ellenőrizd a stop_id-t, lehet elütés vagy régi azonosító.'
-                ]
-            ], 404, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
-
-        $hasSchedule = StopTime::where('stop_id', $stop_id)->exists();
-
-        if (!$hasSchedule) {
-            return response()->json([
-                'data' => [],
-                'errors' => [],
-                'warnings' => [
-                    'message' => 'Nem aktív megállóhely',
-                    'details' => 'A megálló létezik, de nincs menetrend szerinti járat hozzárendelve (pl. tárolóterület, üzem, belső pont).',
-                ]
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
-
-        $results = StopTime::where('stop_id', $stop_id)
-            ->with(['trip.route'])
-            ->select('trip_id')
-            ->distinct()
-            ->get()
-            ->pluck('trip.route')
-            ->unique('id')
-            ->sortBy('short_name')
-            ->map(function ($route) {
-                return [
-                    'route_id'   => $route->id,
-                    'short_name' => $route->short_name,
-                    'type'       => $route->type,
-                    'color'      => $route->color,
-                ];
-            })
-            ->values()
-            ->toArray();
-
-        return response()->json([
-            'data' => $results,
-            'errors' => [],
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
+    
 }
