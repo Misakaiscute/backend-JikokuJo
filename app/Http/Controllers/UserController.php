@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Route;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
@@ -88,67 +88,13 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    public function toggleFavouriteRoute(UserRequest $request)
+    public function toggleFavourite(UserRequest $request, Route $route)
     {
-        $request->validate([
-            'route_id' => 'required|string|exists:routes,id',
-            'minutes'  => 'required|integer|min:1',
-        ]);
-
-        $user = Auth::user();
-        $routeId = $request->route_id;
-        $minutes = $request->minutes;
-
-        $saved = $this->parseSavedRoutes($user->saved_routes);
-
-        if (isset($saved[$routeId])) 
-        {
-            unset($saved[$routeId]);
-            $action = 'removed';
-        } else {
-            $saved[$routeId] = $minutes;
-            $action = 'added';
-        }
-
-        $user->saved_routes = $this->formatSavedRoutes($saved);
-        $user->save();
+        $request->user()->favourites()->toggle($route->id);
 
         return response()->json([
-            'success' => true,
-            'action'  => $action,
-            'saved_routes' => $saved,
+            'status' => 'Kedvenc frissítve.',
+            'is_favourited' => $request->user()->hasFavourited($route),
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
-
-    private function parseSavedRoutes(?string $str): array
-    {
-        if (empty($str)) {
-            return [];
-        }
-
-        $pairs = explode(';', $str);
-        $result = [];
-
-        foreach ($pairs as $pair) {
-            if (empty($pair)) continue;
-            [$id, $minutes] = explode(':', $pair, 2);
-            $result[(int)$id] = (int)$minutes;
-        }
-
-        return $result;
-    }
-
-    private function formatSavedRoutes(array $routes): ?string
-    {
-        if (empty($routes)) {
-            return null;
-        }
-
-        $parts = [];
-        foreach ($routes as $id => $minutes) {
-            $parts[] = "$id:$minutes";
-        }
-
-        return implode(';', $parts);
     }
 }

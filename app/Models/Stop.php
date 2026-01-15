@@ -27,7 +27,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stop whereParentStation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stop whereWheelchairBoarding($value)
  * @mixin \Eloquent
- * @mixin IdeHelperStop
  */
 class Stop extends Model
 {

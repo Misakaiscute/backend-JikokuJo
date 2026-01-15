@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereToStopId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pathway whereTraversalTime($value)
  * @mixin \Eloquent
- * @mixin IdeHelperPathway
  */
 class Pathway extends Model
 {

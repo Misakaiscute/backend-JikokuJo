@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CalendarDate whereExceptionType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CalendarDate whereServiceId($value)
  * @mixin \Eloquent
- * @mixin IdeHelperCalendarDate
  */
 class CalendarDate extends Model
 {

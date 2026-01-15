@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Agency whereTimeZone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Agency whereUrl($value)
  * @mixin \Eloquent
- * @mixin IdeHelperAgency
  */
 class Agency extends Model
 {

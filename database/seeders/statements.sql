@@ -110,9 +110,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(255) DEFAULT NULL,
   `password` VARCHAR(255) DEFAULT NULL,
   `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
-  `saved_routes` VARCHAR(600) DEFAULT NULL,
   UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `favourites` (
+  `id` INT AUTO_INCREMENT,
+  `user_id` INT,
+  `route_id` INT,
+  PRIMARY KEY(`user_id`, `route_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`),
+)
 
 CREATE INDEX idx_stop_times_trip_id       ON stop_times (trip_id);
 CREATE INDEX idx_stop_times_trip_seq      ON stop_times (trip_id, stop_sequence);

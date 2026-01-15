@@ -35,14 +35,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Trip whereTripHeadsign($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Trip whereWheelchairAccessible($value)
  * @mixin \Eloquent
- * @mixin IdeHelperTrip
  */
 class Trip extends Model
 {
     public $incrementing = false;
-    protected $keyType = 'string';
+    protected $keyType = 'int';
     protected $table = 'trips';
-    protected $primaryKey = ['id', 'service_id'];
+    protected $primaryKey = ['id'];
 
     protected $fillable = [
         'id', 'route_id', 'service_id', 'trip_headsign', 'direction_id',

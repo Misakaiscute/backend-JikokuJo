@@ -24,7 +24,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape wherePtLon($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Shape wherePtSequence($value)
  * @mixin \Eloquent
- * @mixin IdeHelperShape
  */
 class Shape extends Model
 {

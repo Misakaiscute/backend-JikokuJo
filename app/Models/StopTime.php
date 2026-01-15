@@ -29,7 +29,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StopTime whereStopSequence($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StopTime whereTripId($value)
  * @mixin \Eloquent
- * @mixin IdeHelperStopTime
  */
 class StopTime extends Model
 {

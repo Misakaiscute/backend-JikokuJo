@@ -24,7 +24,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSecondName($value)
  * @mixin \Eloquent
- * @mixin IdeHelperUser
  */
 class User extends Authenticatable
 {
@@ -43,6 +42,27 @@ class User extends Authenticatable
         'created_at',
         'updated_at'
     ];
+
+    public function favourites()
+    {
+        return $this->belongsToMany(Route::class, 'favourites', 'user_id', 'route_id')
+                    ->withTimestamps();
+    }
+
+    // public function favourite(Route $route): void
+    // {
+    //     $this->favourites()->syncWithoutDetaching($route->id);
+    // }
+
+    // public function unfavourite(Route $route): void
+    // {
+    //     $this->favourites()->detach($route->id);
+    // }
+
+    public function hasFavourited(Route $route): bool
+    {
+        return $this->favourites()->where('route_id', $route->id)->exists();
+    }
 
     protected function casts(): array
     {

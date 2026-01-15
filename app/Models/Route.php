@@ -32,7 +32,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Route whereTextColor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Route whereType($value)
  * @mixin \Eloquent
- * @mixin IdeHelperRoute
  */
 class Route extends Model
 {
@@ -55,5 +54,20 @@ class Route extends Model
     public function trips()
     {
         return $this->hasMany(Trip::class, 'route_id');
+    }
+
+    public function favouritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favourites', 'route_id', 'user_id')
+                    ->withTimestamps();
+    }
+
+    public function isFavouritedBy(?User $user): bool
+    {
+        if (!$user?->exists) {
+            return false;
+        }
+        
+        return $this->favouritedBy()->where('user_id', $user->id)->exists();
     }
 }
