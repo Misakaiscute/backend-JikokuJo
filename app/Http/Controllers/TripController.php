@@ -107,7 +107,6 @@ class TripController extends Controller
                         'name'          => $first->stop->name ?? 'Ismeretlen megálló',
                         'stop_sequence' => $first->stop_sequence,
                         'arrival_time'  => $first->arrival_time,
-                        'departure_time'=> $first->departure_time,
                         'headsign'      => $first->stop_headsign ?? null,
                         'location'      => [
                             'lat' => $first->stop->lat ?? null,
@@ -123,7 +122,6 @@ class TripController extends Controller
                         'name'          => $last->stop->name ?? 'Ismeretlen megálló',
                         'stop_sequence' => $last->stop_sequence,
                         'arrival_time'  => $last->arrival_time,
-                        'departure_time'=> $last->departure_time,
                         'headsign'      => $last->stop_headsign ?? null,
                         'location'      => [
                             'lat' => $last->stop->lat ?? null,
@@ -239,7 +237,7 @@ class TripController extends Controller
             ])
             ->with([
                 'stopTimes' => fn($q) => $q
-                    ->select('trip_id', 'stop_id', 'stop_sequence', 'arrival_time', 'departure_time', 'stop_headsign')
+                    ->select('trip_id', 'stop_id', 'stop_sequence', 'arrival_time', 'stop_headsign')
                     ->orderBy('stop_sequence'),
                 'stopTimes.stop' => fn($q) => $q
                     ->select('id', 'name', 'lat', 'lon', 'code')
@@ -260,7 +258,6 @@ class TripController extends Controller
                         'name'          => $firstAtStop->stop->name ?? 'Ismeretlen megálló',
                         'stop_sequence' => $firstAtStop->stop_sequence,
                         'arrival_time'  => $firstAtStop->arrival_time,
-                        'departure_time'=> $firstAtStop->departure_time,
                         'headsign'      => $firstAtStop->stop_headsign ?? null,
                         'location'      => [
                             'lat' => $firstAtStop->stop->lat ?? null,
@@ -276,7 +273,6 @@ class TripController extends Controller
                         'name'          => $last->stop->name ?? 'Ismeretlen megálló',
                         'stop_sequence' => $last->stop_sequence,
                         'arrival_time'  => $last->arrival_time,
-                        'departure_time'=> $last->departure_time,
                         'headsign'      => $last->stop_headsign ?? null,
                         'location'      => [
                             'lat' => $last->stop->lat ?? null,

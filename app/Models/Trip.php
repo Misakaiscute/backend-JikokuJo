@@ -39,9 +39,9 @@ use Illuminate\Database\Eloquent\Model;
 class Trip extends Model
 {
     public $incrementing = false;
-    protected $keyType = 'int';
+    protected $keyType = 'string';
     protected $table = 'trips';
-    protected $primaryKey = ['id'];
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'id', 'route_id', 'service_id', 'trip_headsign', 'direction_id',

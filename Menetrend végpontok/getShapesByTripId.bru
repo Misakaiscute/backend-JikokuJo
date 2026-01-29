@@ -1,0 +1,16 @@
+meta {
+  name: getShapesByTripId
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{api_url}}/trip/D09929195/shapes
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

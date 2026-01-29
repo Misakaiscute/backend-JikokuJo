@@ -27,7 +27,7 @@ class UserController extends Controller
 
         $user->tokens()->delete();
 
-        $expiresAt = Carbon::now()->addDays($rememberUser ? 7 : 1);
+        $expiresAt = Carbon::now()->addDays($rememberUser ? 14 : 1);
 
         $token = $user->createToken(
             'access_token',
