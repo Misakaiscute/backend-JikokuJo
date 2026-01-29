@@ -114,20 +114,9 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `favourites` (
-  `id` INT AUTO_INCREMENT,
-  `user_id` INT,
-  `route_id` INT,
-  PRIMARY KEY(`user_id`, `route_id`),
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `route_id` VARCHAR(255) NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-  FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`),
-)
-
-CREATE INDEX idx_stop_times_trip_id       ON stop_times (trip_id);
-CREATE INDEX idx_stop_times_trip_seq      ON stop_times (trip_id, stop_sequence);
-CREATE INDEX idx_stop_times_stop_id       ON stop_times (stop_id);
-CREATE INDEX idx_stop_times_stop_time     ON stop_times (stop_id, departure_time);
-CREATE INDEX idx_trips_route_dir          ON trips (route_id, direction_id);
-CREATE INDEX idx_trips_route_id           ON trips (route_id);
-CREATE INDEX idx_calendar_dates_date      ON calendar_dates (date);
-CREATE INDEX idx_stops_name               ON stops (name);
-ALTER TABLE `calendar_dates` ADD INDEX `idx_service_date` (`service_id`, `date`);
+  FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

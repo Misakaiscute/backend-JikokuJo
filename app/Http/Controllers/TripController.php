@@ -15,20 +15,23 @@ class TripController extends Controller
         $date = $date ?? Carbon::today()->format('Ymd');
         $time = $time ?? Carbon::now()->format('Hi');
 
-        if (!preg_match('/^\d{8}$/', $date)) {
+        if (!preg_match('/^\d{8}$/', $date)) 
+        {
             return response()->json([
-                'errors' => ['Incorrect date format (YYYYMMDD).']
+                'errors' => ['Hibás dátum formátum (YYYYMMDD).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
-        if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) {
+        if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) 
+        {
             return response()->json([
-                'errors' => ['Incorrect time format (HHMM).']
+                'errors' => ['Hibás időformátum (HHMM).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $targetMinutes = null;
-        if ($time) {
+        if ($time) 
+        {
             $hour = (int) substr($time, 0, 2);
             $minute = (int) substr($time, 2, 2);
             $targetMinutes = $hour * 60 + $minute;
@@ -39,10 +42,11 @@ class TripController extends Controller
             ->where('exception_type', 1)
             ->pluck('service_id');
 
-        if ($activeServices->isEmpty()) {
+        if ($activeServices->isEmpty()) 
+        {
             return response()->json([
                 'data' => ['trips' => []],
-                'message' => 'No trips are available.'
+                'errors' => ['Nincs elérhető járat ezen a napon.']
             ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -60,11 +64,12 @@ class TripController extends Controller
                 ->distinct()
                 ->pluck('trip_id');
 
-            if ($tripsInWindow->isEmpty()) {
+            if ($tripsInWindow->isEmpty()) 
+            {
                 return response()->json([
                     'data' => ['trips' => []],
-                    'message' => 'No routes are available in this time frame.'
-                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    'errors' => ['Nincs elérhető járat ebben az időintervallumban.']
+                ], 206, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
 
             $tripsQuery->whereIn('id', $tripsInWindow);
@@ -95,29 +100,62 @@ class TripController extends Controller
 
                 $stops = [];
 
-                if ($first) {
-                    $stops[] = $this->formatStop($first);
+                if ($first) 
+                {
+                    $stops[] = [
+                        'id'            => $first->stop_id,
+                        'name'          => $first->stop->name ?? 'Ismeretlen megálló',
+                        'stop_sequence' => $first->stop_sequence,
+                        'arrival_time'  => $first->arrival_time,
+                        'departure_time'=> $first->departure_time,
+                        'headsign'      => $first->stop_headsign ?? null,
+                        'location'      => [
+                            'lat' => $first->stop->lat ?? null,
+                            'lon' => $first->stop->lon ?? null,
+                        ],
+                    ];
                 }
 
-                if ($last && (!$first || $last->stop_sequence !== $first->stop_sequence)) {
-                    $stops[] = $this->formatStop($last);
+                if ($last && (!$first || $last->stop_sequence !== $first->stop_sequence)) 
+                {
+                    $stops[] = [
+                        'id'            => $last->stop_id,
+                        'name'          => $last->stop->name ?? 'Ismeretlen megálló',
+                        'stop_sequence' => $last->stop_sequence,
+                        'arrival_time'  => $last->arrival_time,
+                        'departure_time'=> $last->departure_time,
+                        'headsign'      => $last->stop_headsign ?? null,
+                        'location'      => [
+                            'lat' => $last->stop->lat ?? null,
+                            'lon' => $last->stop->lon ?? null,
+                        ],
+                    ];
                 }
+
+                $departureMinutes = $first?->departure_time ?? 999999;
 
                 return [
-                    'id'                   => $trip->id,
-                    'route_id'             => $trip->route_id,
-                    'shape_id'             => $trip->shape_id ?? null,
-                    'headsign'             => $trip->trip_headsign ?? '',
-                    'direction_id'         => (int) ($trip->direction_id ?? 0),
-                    'wheelchair_accessible'=> (int) ($trip->wheelchair_accessible ?? 0),
-                    'bikes_allowed'        => (int) ($trip->bikes_allowed ?? 0),
-                    'stops'                => $stops,
+                    'id'                    => $trip->id,
+                    'route_id'              => $trip->route_id,
+                    'shape_id'              => $trip->shape_id ?? null,
+                    'headsign'              => $trip->trip_headsign ?? '',
+                    'direction_id'          => (int) ($trip->direction_id ?? 0),
+                    'wheelchair_accessible' => (int) ($trip->wheelchair_accessible ?? 0),
+                    'bikes_allowed'         => (int) ($trip->bikes_allowed ?? 0),
+                    'stops'                 => $stops,
+                    '_departure_minutes'    => $departureMinutes,
                 ];
-            });
+            })
+            ->sortBy('_departure_minutes')
+            ->map(function ($item) {
+                unset($item['_departure_minutes']);
+                return $item;
+            })
+            ->values();
 
         return response()->json([
             'data' => [
-                'trips' => $trips->values(),
+                'trips' => $trips,
             ],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -130,13 +168,13 @@ class TripController extends Controller
 
         if (!preg_match('/^\d{8}$/', $date)) {
             return response()->json([
-                'errors' => ['Incorrect date format (YYYYMMDD).']
+                'errors' => ['Hibás dátum formátum (YYYYMMDD).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) {
             return response()->json([
-                'errors' => ['Incorrect time format (HHMM).']
+                'errors' => ['Hibás időformátum (HHMM).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -155,7 +193,7 @@ class TripController extends Controller
         if ($activeServices->isEmpty()) {
             return response()->json([
                 'data' => ['trips' => []],
-                'message' => 'No trips are available.'
+                'errors' => ['Nincs elérhető járat.']
             ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -175,16 +213,9 @@ class TripController extends Controller
             if ($tripsInWindow->isEmpty()) {
                 return response()->json([
                     'data' => ['trips' => []],
-                    'message' => 'Nincs indulás a megadott megállóból a kiválasztott időablakban'
-                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    'errors' => ['Nincs elérhető járat ebben az időintervallumban.']
+                ], 206, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
-
-            $tripsQuery->whereIn('id', $tripsInWindow);
-        } else {
-            return response()->json([
-                'data' => ['trips' => []],
-                'message' => 'No trips are available.'
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
             $tripsQuery->whereIn('id', $tripsInWindow);
         }
@@ -209,34 +240,67 @@ class TripController extends Controller
             ])
             ->get()
             ->map(function ($trip) use ($stop_id) {
-                $first = $trip->stopTimes()->where('stop_id', $stop_id)->first();
-                $last  = $trip->stopTimes->last();
+                $stopTimesForThisStop = $trip->stopTimes->where('stop_id', $stop_id);
+                $firstAtStop = $stopTimesForThisStop->first();
+                $firstOverall = $trip->stopTimes->first();
+                $last = $trip->stopTimes->last();
 
                 $stops = [];
 
-                if ($first) {
-                    $stops[] = $this->formatStop($first);
+                if ($firstAtStop) {
+                    $stops[] = [
+                        'id'            => $firstAtStop->stop_id,
+                        'name'          => $firstAtStop->stop->name ?? 'Ismeretlen megálló',
+                        'stop_sequence' => $firstAtStop->stop_sequence,
+                        'arrival_time'  => $firstAtStop->arrival_time,
+                        'departure_time'=> $firstAtStop->departure_time,
+                        'headsign'      => $firstAtStop->stop_headsign ?? null,
+                        'location'      => [
+                            'lat' => $firstAtStop->stop->lat ?? null,
+                            'lon' => $firstAtStop->stop->lon ?? null,
+                        ],
+                    ];
                 }
 
-                if ($last && (!$first || $last->stop_sequence !== $first->stop_sequence)) {
-                    $stops[] = $this->formatStop($last);
+                if ($last && (!$firstAtStop || $last->stop_sequence !== $firstAtStop->stop_sequence)) {
+                    $stops[] = [
+                        'id'            => $last->stop_id,
+                        'name'          => $last->stop->name ?? 'Ismeretlen megálló',
+                        'stop_sequence' => $last->stop_sequence,
+                        'arrival_time'  => $last->arrival_time,
+                        'departure_time'=> $last->departure_time,
+                        'headsign'      => $last->stop_headsign ?? null,
+                        'location'      => [
+                            'lat' => $last->stop->lat ?? null,
+                            'lon' => $last->stop->lon ?? null,
+                        ],
+                    ];
                 }
+
+                $departureMinutes = $firstOverall?->departure_time ?? 999999;
 
                 return [
-                    'id'                   => $trip->id,
-                    'route_id'             => $trip->route_id,
-                    'shape_id'             => $trip->shape_id ?? null,
-                    'headsign'             => $trip->trip_headsign ?? '',
-                    'direction_id'         => (int) ($trip->direction_id ?? 0),
-                    'wheelchair_accessible'=> (int) ($trip->wheelchair_accessible ?? 0),
-                    'bikes_allowed'        => (int) ($trip->bikes_allowed ?? 0),
-                    'stops'                => $stops,
+                    'id'                    => $trip->id,
+                    'route_id'              => $trip->route_id,
+                    'shape_id'              => $trip->shape_id ?? null,
+                    'headsign'              => $trip->trip_headsign ?? '',
+                    'direction_id'          => (int) ($trip->direction_id ?? 0),
+                    'wheelchair_accessible' => (int) ($trip->wheelchair_accessible ?? 0),
+                    'bikes_allowed'         => (int) ($trip->bikes_allowed ?? 0),
+                    'stops'                 => $stops,
+                    '_departure_minutes'    => $departureMinutes,
                 ];
-            });
+            })
+            ->sortBy('_departure_minutes')
+            ->map(function ($item) {
+                unset($item['_departure_minutes']);
+                return $item;
+            })
+            ->values();
 
         return response()->json([
             'data' => [
-                'trips' => $trips->values(),
+                'trips' => $trips,
             ],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

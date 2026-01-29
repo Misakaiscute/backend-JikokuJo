@@ -63,19 +63,20 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'route_id.exists' => 'The specified route does not exist.',
-            'minutes.min'     => 'The duration must be at least 1 minute.',
-            'minutes.max'     => 'The duration can be a maximum of 24 hours (1440 minutes).',
-            'first_name.max'  => 'The first name may not be greater than 255 characters.',
-            'first_name.required' => 'The first name field is required.',
-            'second_name.max'  => 'The last name may not be greater than 255 characters.',
-            'second_name.required' => 'The last name field is required.',
-            'email.unique'    => 'A user with this email address already exists.',
-            'email.required'  => 'The email address field is required.',
-            'email.email'     => 'The email address format is invalid.',
-            'password.required' => 'The password field is required.',
-            'password.min'    => 'The password must be at least 8 characters long.',
-            'password_confirmation.required' => 'Please confirm your password by entering it again.',
+            'route_id.exists' => 'A megadott járat nem létezik.',
+            'minutes.min'     => 'Minimum 1 percet kell megadni .',
+            'minutes.max'     => 'Maximum 24 óra lehet a megadott percek (1440).',
+            'first_name.max'  => 'A vezetéknév maximum 255 karakter lehet.',
+            'first_name.required' => 'A vezetéknév mező kötelező.',
+            'second_name.max'  => 'A keresztnév maximum 255 karakter lehet.',
+            'second_name.required' => 'A keresztnév mező kötelező.',
+            'email.unique'    => 'Ez az email címhez már tartozik fiók.',
+            'email.required'  => 'Az email mező kötelező.',
+            'email.email'     => 'Az email cím helytelen formátumban van.',
+            'password.required' => 'A jelszó mező kötelező.',
+            'password.min'    => 'A jelszónak minimum 8 karakternek kell lennie.',
+            'password_confirmation.required' => 'A jelszó megerősítése kötelező.',
+            'password.confirmed' => 'A két jelszó nem egyezik.'
         ];
     }
 }

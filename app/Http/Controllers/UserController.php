@@ -20,7 +20,8 @@ class UserController extends Controller
 
         if (!$user || !Hash::check($password, $password ? $user->password : '')) {
             return response()->json([
-                'message' => 'Invalid email or password',
+                'data'   => [],
+                'errors' => ['Invalid email or password'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -35,8 +36,8 @@ class UserController extends Controller
         );
         
         return response()->json([
-            'token'      => $token->plainTextToken,
-            'expires_at' => $expiresAt->toDateTimeString(),
+            'data'      => ['token' => $token->plainTextToken],
+            'errors'    => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
@@ -45,7 +46,8 @@ class UserController extends Controller
         $user = User::create($request->all());
 
         return response()->json([
-            'user' => $user,
+            'data'   => ['user' => $user],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
@@ -64,13 +66,15 @@ class UserController extends Controller
         $user->touch();
 
         return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $user->refresh()->only([
-                'id',
-                'first_name',
-                'second_name',
-                'email',
-            ])
+            'data' => 
+            [
+                'user' => $user->refresh()->only([
+                    'id',
+                    'first_name',
+                    'second_name',
+                    'email',
+            ])],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
@@ -83,8 +87,8 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json([
-            'message' => 'Profile deleted successfully',
-            'user' => $userData
+            'data'   => [],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
@@ -93,8 +97,8 @@ class UserController extends Controller
         $request->user()->favourites()->toggle($route->id);
 
         return response()->json([
-            'status' => 'Kedvenc frissítve.',
-            'is_favourited' => $request->user()->hasFavourited($route),
+            'data'   => [],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }

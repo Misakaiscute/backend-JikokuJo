@@ -28,7 +28,10 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         },
-        "files": ["app/sanitize_files.php"]
+        "files": [
+            "app/Helpers/sanitize_files.php",
+            "app/Helpers/remove_dead_stops.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             PathwaySeeder::class,
             CalendarDateSeeder::class
         ]);
+        remove_dead_stops();
     }
 
     public static function refresh_data()

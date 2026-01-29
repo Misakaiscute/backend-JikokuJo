@@ -10,38 +10,61 @@ class CalendarDateSeeder extends Seeder
 {
     public function run(): void
     {        
-        $handle = fopen(get_storage_path("calendar_dates.txt"), 'r');
+        sanitize_input("calendar_dates.txt");
+
+        $filePath = get_storage_path("calendar_dates.txt");
+        $handle = fopen($filePath, 'r');
+
+        if ($handle === false) 
+        {
+            $this->command->error("Nem sikerült megnyitni a calendar_dates.txt fájlt!");
+            return;
+        }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::statement('TRUNCATE TABLE calendar_dates');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $batch = [];
-        $batchSize = 1000;
+        $batchSize = 2000;
+        $totalRows = 0;
 
         $skip = true;
-        while (($line = fgets($handle)) !== false) {
-            if($skip) { $skip = false; continue; }
+        while (($line = fgets($handle, 65536)) !== false) 
+        {
+            if ($skip) 
+            { 
+                $skip = false; 
+                continue; 
+            }
+
             $item = explode(",", trim($line));
 
-            $batch[] = [
-                "service_id" => $item[0],
-                "date" => $item[1],
-                "exception_type" => $item[2],
+            if (count($item) < 3) 
+            {
+                continue;
+            }
+
+            $batch[] = 
+            [
+                "service_id"      => $item[0],
+                "date"            => $item[1],
+                "exception_type"  => $item[2],
             ];
 
-            if (count($batch) >= $batchSize) {
-                DB::table("calendar_dates")->upsert(
-                    $batch,
-                    ['mode', 'is_bidirectional', 'from_stop_id', 'to_stop_id', 'traversal_time']
-                );
+            $totalRows++;
+
+            if (count($batch) >= $batchSize) 
+            {
+                DB::table("calendar_dates")->insert($batch);
                 $batch = [];
             }
         }
 
-        if (!empty($batch)) {
-            DB::table("calendar_dates")->upsert(
-                $batch,
-                ['mode', 'is_bidirectional', 'from_stop_id', 'to_stop_id', 'traversal_time']
-            );
+        if (!empty($batch)) 
+        {
+            DB::table("calendar_dates")->insert($batch);
         }
-
         fclose($handle);
     }
 }

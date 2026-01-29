@@ -10,23 +10,30 @@ class RouteSeeder extends Seeder
 {
     public function run(): void
     {        
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::statement('TRUNCATE TABLE routes');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         sanitize_input("routes.txt");
 
         $handle = fopen(get_storage_path("routes.txt"), 'r');
 
         $batch = [];
-        $batchSize = 1000;
+        $batchSize = 2000;
 
         $skip = true;
-        while (($line = fgets($handle, 65536)) !== false) {
+        while (($line = fgets($handle, 65536)) !== false) 
+        {
             if($skip) { $skip = false; continue; }        
             $item = explode(",", trim($line));
-        
-            if (count($item) < 9) {
+
+            if (count($item) < 9) 
+            {
                 continue;
             }
 
-            $batch[] = [
+            $batch[] = 
+            [
                 "agency_id" => $item[0],
                 "id" => $item[1],
                 "short_name" => $item[2],
@@ -38,22 +45,16 @@ class RouteSeeder extends Seeder
                 "sort_order" => ($item[8] === '' ? 0 : $item[8]),
             ];
 
-            if (count($batch) >= $batchSize) {
-                DB::table("routes")->upsert(
-                    $batch,
-                    ['id'],
-                    ['agency_id', 'short_name', 'long_name', 'type', 'desc', 'color', 'text_color', 'sort_order']
-                );
+            if (count($batch) >= $batchSize) 
+            {
+                DB::table("routes")->insert($batch);
                 $batch = [];
             }
         }
 
-        if (!empty($batch)) {
-            DB::table("routes")->upsert(
-                $batch,
-                ['id'],
-                ['agency_id', 'short_name', 'long_name', 'type', 'desc', 'color', 'text_color', 'sort_order']
-            );
+        if (!empty($batch)) 
+        {
+            DB::table("routes")->insert($batch);
         }
 
         fclose($handle);

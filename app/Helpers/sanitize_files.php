@@ -1,5 +1,6 @@
 <?php
 
+
 function get_storage_path($addition) 
 {
     if($addition == "")
@@ -49,10 +50,10 @@ function switch_commas(string $input, bool $stripQuotes = false): string
             {
                 $out .= $ch;
             }
+        }
     }
-}
 
-return $out;
+    return $out;
 
 }
 
