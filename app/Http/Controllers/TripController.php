@@ -166,20 +166,23 @@ class TripController extends Controller
         $date = $date ?? Carbon::today()->format('Ymd');
         $time = $time ?? Carbon::now()->format('Hi');
 
-        if (!preg_match('/^\d{8}$/', $date)) {
+        if (!preg_match('/^\d{8}$/', $date)) 
+        {
             return response()->json([
                 'errors' => ['Hibás dátum formátum (YYYYMMDD).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
-        if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) {
+        if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) 
+        {
             return response()->json([
                 'errors' => ['Hibás időformátum (HHMM).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $targetMinutes = null;
-        if ($time) {
+        if ($time) 
+        {
             $hour = (int) substr($time, 0, 2);
             $minute = (int) substr($time, 2, 2);
             $targetMinutes = $hour * 60 + $minute;
@@ -190,7 +193,8 @@ class TripController extends Controller
             ->where('exception_type', 1)
             ->pluck('service_id');
 
-        if ($activeServices->isEmpty()) {
+        if ($activeServices->isEmpty()) 
+        {
             return response()->json([
                 'data' => ['trips' => []],
                 'errors' => ['Nincs elérhető járat.']
@@ -200,7 +204,8 @@ class TripController extends Controller
         $tripsQuery = Trip::query()
             ->whereIn('service_id', $activeServices);
 
-        if ($targetMinutes !== null) {
+        if ($targetMinutes !== null) 
+        {
             $windowStart = $targetMinutes;
             $windowEnd   = $targetMinutes + 120;
 
@@ -210,7 +215,8 @@ class TripController extends Controller
                 ->distinct()
                 ->pluck('trip_id');
 
-            if ($tripsInWindow->isEmpty()) {
+            if ($tripsInWindow->isEmpty()) 
+            {
                 return response()->json([
                     'data' => ['trips' => []],
                     'errors' => ['Nincs elérhető járat ebben az időintervallumban.']
@@ -247,7 +253,8 @@ class TripController extends Controller
 
                 $stops = [];
 
-                if ($firstAtStop) {
+                if ($firstAtStop) 
+                {
                     $stops[] = [
                         'id'            => $firstAtStop->stop_id,
                         'name'          => $firstAtStop->stop->name ?? 'Ismeretlen megálló',
@@ -262,7 +269,8 @@ class TripController extends Controller
                     ];
                 }
 
-                if ($last && (!$firstAtStop || $last->stop_sequence !== $firstAtStop->stop_sequence)) {
+                if ($last && (!$firstAtStop || $last->stop_sequence !== $firstAtStop->stop_sequence)) 
+                {
                     $stops[] = [
                         'id'            => $last->stop_id,
                         'name'          => $last->stop->name ?? 'Ismeretlen megálló',
