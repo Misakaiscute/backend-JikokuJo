@@ -41,6 +41,15 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
+    public function get(UserRequest $request) {
+        return response()->json([
+            'data' => [
+                'user' => $request->user(),
+            ],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function store(UserRequest $request)
     {
         $user = User::create($request->all());
@@ -66,14 +75,14 @@ class UserController extends Controller
         $user->touch();
 
         return response()->json([
-            'data' => 
-            [
+            'data' => [
                 'user' => $user->refresh()->only([
                     'id',
                     'first_name',
                     'second_name',
                     'email',
-            ])],
+                ])
+            ],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
@@ -81,8 +90,6 @@ class UserController extends Controller
     public function destroy(UserRequest $request)
     {
         $user = $request->user();
-
-        $userData = $request->user()->second_name . " " . $request->user()->first_name;
 
         $user->delete();
 
