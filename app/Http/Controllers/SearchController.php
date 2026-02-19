@@ -6,6 +6,7 @@ use DirectoryIterator;
 use Illuminate\Http\Request;
 use App\Models\Stop;
 use App\Models\Route;
+use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
@@ -27,22 +28,38 @@ class SearchController extends Controller
     {
         return match (true) 
         {
-            in_array($type, $this->routeTypes['busz'] ?? [])     => 1,
+            in_array($type, $this->routeTypes['busz'] ?? []) => 1,
             in_array($type, $this->routeTypes['villamos'] ?? []) => 2,
-            in_array($type, $this->routeTypes['metró'] ?? [])    => 3,
-            in_array($type, $this->routeTypes['troli'] ?? [])    => 4,
-            in_array($type, $this->routeTypes['vonat'] ?? [])    => 5,
-            in_array($type, $this->routeTypes['hév'] ?? [])      => 6,
-            in_array($type, $this->routeTypes['taxi'] ?? [])     => 7,
-            default                                              => 8,
+            in_array($type, $this->routeTypes['metró'] ?? []) => 3,
+            in_array($type, $this->routeTypes['troli'] ?? []) => 4,
+            in_array($type, $this->routeTypes['vonat'] ?? []) => 5,
+            in_array($type, $this->routeTypes['hév'] ?? []) => 6,
+            in_array($type, $this->routeTypes['taxi'] ?? []) => 7,
+            default => 8,
         };
     }
 
     public function queryables()
     {
-        $stops = Stop::select('name', "id")
-        ->orderBy('name')
-        ->get();
+        $stops = Stop::query()
+        ->select(
+            'name',
+            DB::raw("GROUP_CONCAT(id ORDER BY id ASC SEPARATOR ',') AS temp_ids")
+        )
+        ->groupBy('name')
+        ->get()
+        ->map(function ($stop) {
+            $ids = [];
+            if ($stop->temp_ids !== null && $stop->temp_ids !== '') {
+                $ids = explode(',', $stop->temp_ids);
+                $ids = array_map('trim', $ids);
+                $ids = array_filter($ids, fn($v) => $v !== '');
+            }
+            return [
+                'name' => $stop->name,
+                'ids'  => $ids,
+            ];
+        });
 
         $routes = Route::select('id', 'short_name', 'color', 'type')
                     ->get()
