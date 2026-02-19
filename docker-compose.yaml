@@ -1,0 +1,41 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: jikokujo
+    container_name: jikokujo-backend
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    networks:
+      - jikokujo
+
+  database:
+    image: mysql:9.6.0
+    command: --restrict-fk-on-non-standard-key=OFF
+    container_name: jikokujo-database
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - jikokujo
+  
+  nginx:
+    image: nginx:1.29.5
+    container_name: jikokujo-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - jikokujo
+
+networks:
+  jikokujo:
+    driver: bridge

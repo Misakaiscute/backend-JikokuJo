@@ -1,0 +1,8 @@
+vendor/*
+storage/logs/*
+"Menetrend vépontok"
+"User végpontok"
+.editorconfig
+.git
+README.md
+docker-compose
