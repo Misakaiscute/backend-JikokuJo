@@ -1,0 +1,3 @@
+<FilesMatch "\.php$">
+    SetHandler php84-cgi
+</FilesMatch>
