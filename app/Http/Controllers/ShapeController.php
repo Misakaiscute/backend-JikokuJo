@@ -25,12 +25,12 @@ class ShapeController extends Controller
         $shapeId = $trip->shape_id;
 
         $points = Shape::where('id', $shapeId)
-            ->orderBy('pt_sequence')
-            ->select('pt_sequence', 'pt_lat', 'pt_lon')
+            ->orderBy('dist_traveled')
+            ->select('dist_traveled', 'pt_lat', 'pt_lon')
             ->get()
             ->map(function ($point) {
                 return [
-                    'sequence' => (int) $point->pt_sequence,
+                    'distance_traveled' => (int) $point->dist_traveled,
                     'location' => [
                         'lat' => (float) $point->pt_lat,
                         'lon' => (float) $point->pt_lon,
