@@ -4,10 +4,18 @@ meta {
   seq: 3
 }
 
-get {
-  url: {{api_url}}/stop/007877/time/20260129/1600
-  body: none
+post {
+  url: {{api_url}}/stop/trip
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "date": "20260219",
+    "time": "1230",
+    "ids": ["F01719"]
+  }
 }
 
 settings {

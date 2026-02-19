@@ -12,8 +12,9 @@ use App\Http\Requests\UserRequest;
 
 Route::get('/queryables', [SearchController::class, 'queryables']);
 //összes megállónév + járatnevek
-Route::get('/stop/{stop_id}/time/{date}/{time}', [TripController::class, 'getTripsByStopId']);
+Route::post('/stop/trip', [TripController::class, 'getTripsByStopId']);
 //visszaadja az összes utat ami érint egy megállót
+//adatok: date, time, ids
 Route::get('/route/{route_id}/time/{date}/{time}', [TripController::class, 'getTripsByRouteId']);
 //visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján (YYYYMMDD pl {20260107}), (HHMM pl {1431})
 Route::get('/trip/{trip_id}/shapes', [ShapeController::class, 'getShapesByTripId']);
