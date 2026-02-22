@@ -162,8 +162,8 @@ class TripController extends Controller
 
     public function getTripsByStopId(TripRequest $request)
     {
-        $date = $request->date ?? Carbon::today()->format('Ymd');
-        $time = $request->time ?? Carbon::now()->format('Hi');
+        $date = $request->input('date') ?? Carbon::today()->format('Ymd');
+        $time = $request->input('time') ?? Carbon::now()->format('Hi');
         $stopIdsInput = $request->input('ids');
 
         if (is_null($stopIdsInput)) {
@@ -237,7 +237,7 @@ class TripController extends Controller
                 ->whereBetween('departure_time', [$windowStart, $windowEnd])
                 ->distinct()
                 ->pluck('trip_id');
-
+            
             if ($tripsInWindow->isEmpty()) {
                 return response()->json([
                     'data'   => ['trips' => []],

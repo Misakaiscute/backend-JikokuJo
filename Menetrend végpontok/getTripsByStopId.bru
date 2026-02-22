@@ -5,17 +5,40 @@ meta {
 }
 
 post {
-  url: {{api_url}}/stop/trip
-  body: json
+  url: {{api_url}}stop/trip
+  body: formUrlEncoded
   auth: inherit
+}
+
+params:query {
+  ~date: 20260219
 }
 
 body:json {
   {
     "date": "20260219",
-    "time": "1230",
-    "ids": ["F01719"]
+    "time": "1625",
+    "ids": [
+      "008782",
+      "F01164",
+      "F01165",
+      "F01166",
+      "F01167",
+      "F01168",
+      "F01169",
+      "F01293"
+    ]
   }
+}
+
+body:form-urlencoded {
+  date: 20260219
+  ids: ["008782", "F01164", "F01165", "F01166", "F01167", "F01168", "F01169", "F01293"]
+  time: 1640
+}
+
+vars:pre-request {
+  api_url: http://localhost:8000/api/
 }
 
 settings {
