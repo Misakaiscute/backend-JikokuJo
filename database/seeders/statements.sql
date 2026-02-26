@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `favourites` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
-  `route_id` VARCHAR(255) NOT NULL,
+  `trip_id` VARCHAR(255) NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-  FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`)
+  FOREIGN KEY (`trip_id`) REFERENCES `trips`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
