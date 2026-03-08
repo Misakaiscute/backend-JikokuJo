@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\Vehicle;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -14,15 +13,43 @@ class VehiclePositionUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public Vehicle $vehicle,
-        public ?string $timestamp = null
+        public string $tripId,
+        public float $lat,
+        public float $lon,
+        public ?float $speed = null,
+        public ?float $bearing = null,
+        public ?string $timestamp = null,
+        // public ?string $vehicleId = null,
     ) {
         $this->timestamp ??= now()->toIso8601String();
     }
 
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel>
+     */
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel("vehicle.{$this->vehicle->id}.live");
+        return new PresenceChannel("trip.{$this->tripId}");
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'trip_id'    => $this->tripId,
+            // 'vehicle_id' => $this->vehicleId,
+            'lat'        => $this->lat,
+            'lon'        => $this->lon,
+            'speed'      => $this->speed,
+            'bearing'    => $this->bearing,
+            'updated_at' => $this->timestamp,
+        ];
     }
 
     public function broadcastAs(): string
@@ -30,16 +57,12 @@ class VehiclePositionUpdated implements ShouldBroadcast
         return 'vehicle.position-updated';
     }
 
-    public function broadcastWith(): array
+    /**
+     * Determine if the event should be broadcast synchronously.
+     * Return true to broadcast immediately instead of queuing.
+     */
+    public function shouldBroadcastNow(): bool
     {
-        return [
-            'vehicle_id' => $this->vehicle->vehicle_id,
-            'trip_id' => $this->vehicle->trip_id,
-            'lat'        => $this->vehicle->lat,
-            'lon'        => $this->vehicle->lon,
-            'speed'      => $this->vehicle->speed ?? null,
-            'direction_id'    => $this->vehicle->direction_id ?? null,
-            'updated_at' => $this->timestamp,
-        ];
+        return true;
     }
 }

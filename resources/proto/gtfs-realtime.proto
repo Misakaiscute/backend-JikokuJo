@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package transit_realtime;
+
+option php_namespace = "TransitRealtime";
+option php_metadata_namespace = "TransitRealtime\\GPBMetadata";
+
+message FeedMessage {
+  FeedHeader header = 1;
+  repeated FeedEntity entity = 2;
+}
+
+message FeedHeader {
+  string gtfs_realtime_version = 1;
+  enum Incrementality {
+    FULL_DATASET = 0;
+    DIFFERENTIAL = 1;
+  }
+  Incrementality incrementality = 2;
+  uint64 timestamp = 3;
+  string feed_version = 4;
+}
+
+message FeedEntity {
+  string id = 1;
+  bool is_deleted = 2;
+  TripUpdate trip_update = 3;
+  VehiclePosition vehicle = 4;
+  Alert alert = 5;
+  Shape shape = 6;
+  Stop stop = 7;
+}
+
+message Position {
+  float latitude = 1;
+  float longitude = 2;
+  float bearing = 3;
+  double odometer = 4;
+  float speed = 5;
+}
+
+message TripDescriptor {
+  string trip_id = 1;
+  string route_id = 5;
+  uint32 direction_id = 6;
+  string start_time = 2;
+  string start_date = 3;
+  enum ScheduleRelationship {
+    SCHEDULED = 0;
+    ADDED = 1;
+    UNSCHEDULED = 2;
+    CANCELED = 3;
+    REPLACEMENT = 5;
+    DUPLICATED = 6;
+    DELETED = 7;
+    NEW = 8;
+  }
+  ScheduleRelationship schedule_relationship = 4;
+}
+
+message VehicleDescriptor {
+  string id = 1;
+  string label = 2;
+  string license_plate = 3;
+  enum WheelchairAccessible {
+    NO_VALUE = 0;
+    UNKNOWN = 1;
+    WHEELCHAIR_ACCESSIBLE = 2;
+    WHEELCHAIR_INACCESSIBLE = 3;
+  }
+  WheelchairAccessible wheelchair_accessible = 4;
+}
+
+message VehiclePosition {
+  TripDescriptor trip = 1;
+  VehicleDescriptor vehicle = 8;
+  Position position = 2;
+  uint32 current_stop_sequence = 3;
+  string stop_id = 7;
+  enum VehicleStopStatus {
+    INCOMING_AT = 0;
+    STOPPED_AT = 1;
+    IN_TRANSIT_TO = 2;
+  }
+  VehicleStopStatus current_status = 4;
+  uint64 timestamp = 5;
+  enum CongestionLevel {
+    UNKNOWN_CONGESTION_LEVEL = 0;
+    RUNNING_SMOOTHLY = 1;
+    STOP_AND_GO = 2;
+    CONGESTION = 3;
+    SEVERE_CONGESTION = 4;
+  }
+  CongestionLevel congestion_level = 6;
+  enum OccupancyStatus {
+    EMPTY = 0;
+    MANY_SEATS_AVAILABLE = 1;
+    FEW_SEATS_AVAILABLE = 2;
+    STANDING_ROOM_ONLY = 3;
+    CRUSHED_STANDING_ROOM_ONLY = 4;
+    FULL = 5;
+    NOT_ACCEPTING_PASSENGERS = 6;
+    NO_DATA_AVAILABLE = 7;
+    NOT_BOARDABLE = 8;
+  }
+  OccupancyStatus occupancy_status = 9;
+  uint32 occupancy_percentage = 10;
+}
+
+message TripUpdate {
+  TripDescriptor trip = 1;
+  VehicleDescriptor vehicle = 3;
+  message StopTimeEvent {
+    int32 delay = 1;
+    int64 time = 2;
+    int32 uncertainty = 3;
+    int64 scheduled_time = 4;
+  }
+  message StopTimeUpdate {
+    uint32 stop_sequence = 1;
+    string stop_id = 4;
+    StopTimeEvent arrival = 2;
+    StopTimeEvent departure = 3;
+    enum ScheduleRelationship {
+      SCHEDULED = 0;
+      SKIPPED = 1;
+      NO_DATA = 2;
+      UNSCHEDULED = 3;
+    }
+    ScheduleRelationship schedule_relationship = 5;
+  }
+  repeated StopTimeUpdate stop_time_update = 2;
+  uint64 timestamp = 4;
+}
+
+message Alert {
+  message TimeRange {
+    uint64 start = 1;
+    uint64 end = 2;
+  }
+  repeated TimeRange active_period = 1;
+  enum Cause {
+    CAUSE_UNSPECIFIED = 0;
+    UNKNOWN_CAUSE = 1;
+    OTHER_CAUSE = 2;
+    TECHNICAL_PROBLEM = 3;
+    STRIKE = 4;
+    DEMONSTRATION = 5;
+    ACCIDENT = 6;
+    HOLIDAY = 7;
+    WEATHER = 8;
+    MAINTENANCE = 9;
+    CONSTRUCTION = 10;
+    POLICE_ACTIVITY = 11;
+    MEDICAL_EMERGENCY = 12;
+  }
+  Cause cause = 6;
+  enum Effect {
+    EFFECT_UNSPECIFIED = 0;
+    NO_SERVICE = 1;
+    REDUCED_SERVICE = 2;
+    SIGNIFICANT_DELAYS = 3;
+    DETOUR = 4;
+    ADDITIONAL_SERVICE = 5;
+    MODIFIED_SERVICE = 6;
+    OTHER_EFFECT = 7;
+    UNKNOWN_EFFECT = 8;
+    STOP_MOVED = 9;
+    NO_EFFECT = 10;
+    ACCESSIBILITY_ISSUE = 11;
+  }
+  Effect effect = 7;
+}
+
+message Shape {
+  string shape_id = 1;
+  string encoded_polyline = 2;
+}
+
+message Stop {
+  enum WheelchairBoarding {
+    UNKNOWN = 0;
+    AVAILABLE = 1;
+    NOT_AVAILABLE = 2;
+  }
+  string stop_id = 1;
+  float stop_lat = 6;
+  float stop_lon = 7;
+}

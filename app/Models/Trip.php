@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 /**
  * @property string $id
@@ -84,5 +85,19 @@ class Trip extends Model
     public function stops() {
         return $this->hasManyThrough(Stop::class, StopTime::class, 'trip_id', 'stop_id', 'trip_id', 'stop_id')
                       ->orderBy('stop_times.stop_sequence');
+    }
+
+    public function favouritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favourites', 'trip_id', 'user_id');
+    }
+
+    public function isFavouritedBy(?User $user)
+    {
+        if (!$user?->exists) {
+            return false;
+        }
+        
+        return $this->favouritedBy()->where('user_id', $user->id)->exists();
     }
 }

@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Route;
+use App\Models\Trip;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
+use Exception;
 
 class UserController extends Controller
 {
@@ -99,12 +100,44 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    public function toggleFavourite(UserRequest $request, Route $route)
+    public function toggleFavourite(UserRequest $request)
     {
-        $request->user()->favourites()->toggle($route->id);
+        $trip_id = $request->trip_id;
+        try
+        {
+            Trip::findOrFail($trip_id);
+        }
+        catch(Exception $e)
+        {
+            return response()->json([
+            'data'   => [],
+            'errors' => ["Nincs trip ilyen id-vel."]
+        ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        $request->user()->favourites()->toggle($trip_id);
 
         return response()->json([
             'data'   => [],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function favourites(UserRequest $request)
+    {
+        $user = $request->user();
+        $favourites = $user->favourites;
+        if(!$favourites)
+        {
+            return response()->json([
+            'data'   => ['Nincs egy kedvenc trip sem.'],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return response()->json([
+            'data'   => [
+                'favourites' => $favourites
+            ],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }

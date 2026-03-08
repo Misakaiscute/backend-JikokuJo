@@ -1,0 +1,16 @@
+meta {
+  name: pollTripLocation
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{api_url}}/vehicle-positions/poll/D11040634
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

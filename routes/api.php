@@ -6,6 +6,7 @@ use App\Http\Controllers\ShapeController;
 use App\Http\Controllers\StopController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VehiclePositionController;
 use App\Http\Requests\UserRequest;
 
 //menetrendkereső
@@ -39,9 +40,14 @@ Route::middleware('auth:sanctum')->group(function ()
     Route::delete('/user/delete', [UserController::class, 'destroy']);
     //token alapján töröl nem kell beadni semmit
     Route::post('/routes/favourite/toggle', [UserController::class, 'toggleFavourite']);
-    //hozzáadja vagy kiveszi a routeot a kedvencek közül, a "route_id"-t és a "minutes" változót (indulási ideje percben) json bodyból veszi ki a requestből
+    //hozzáadja vagy kiveszi a tripet a kedvencek közül, adatok: trip_id
+    Route::get('/user/favourites', [UserController::class, 'favourites']);
+    //favouritek listázása
 });
 
+Route::get('/vehicle-positions/poll/{tripId}', [VehiclePositionController::class, 'startPolling']);
+//elkezdi a folyamatos streaelést a létrehozott csatornán, autoatikusan leáll ha senki nincs a channelben
+//a csatorna neve mindig "trip.{trip_id}" 
 
 
 

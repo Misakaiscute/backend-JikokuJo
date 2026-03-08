@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{api_url}}stop/trip
-  body: formUrlEncoded
+  body: json
   auth: inherit
 }
 
@@ -16,25 +16,18 @@ params:query {
 
 body:json {
   {
-    "date": "20260219",
-    "time": "1625",
+    "date": "20260308",
+    "time": "2340",
     "ids": [
-      "008782",
-      "F01164",
-      "F01165",
-      "F01166",
-      "F01167",
-      "F01168",
-      "F01169",
-      "F01293"
+      "007881"
     ]
   }
 }
 
 body:form-urlencoded {
-  date: 20260219
-  ids: ["008782", "F01164", "F01165", "F01166", "F01167", "F01168", "F01169", "F01293"]
-  time: 1640
+  date: 20260308
+  ids: "007817"
+  time: 1729
 }
 
 vars:pre-request {

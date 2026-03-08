@@ -45,23 +45,12 @@ class User extends Authenticatable
 
     public function favourites()
     {
-        return $this->belongsToMany(Route::class, 'favourites', 'user_id', 'route_id')
-                    ->withTimestamps();
+        return $this->belongsToMany(Trip::class, 'favourites', 'user_id', 'trip_id');
     }
 
-    // public function favourite(Route $route): void
-    // {
-    //     $this->favourites()->syncWithoutDetaching($route->id);
-    // }
-
-    // public function unfavourite(Route $route): void
-    // {
-    //     $this->favourites()->detach($route->id);
-    // }
-
-    public function hasFavourited(Route $route): bool
+    public function hasFavourited(Trip $trip)
     {
-        return $this->favourites()->where('route_id', $route->id)->exists();
+        return $this->favourites()->where('trip_id', $trip->id)->exists();
     }
 
     protected function casts(): array
