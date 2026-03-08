@@ -13,12 +13,12 @@ class Vehicle extends Model
     use HasFactory;
 
     protected $fillable = [
-        'vehicle_id',
+        'bkk_id',
         'trip_id',
         'lat',
         'lon',
         'speed',
-        'direction_id',
+        'bearing',
         'updated_at',
     ];
 
