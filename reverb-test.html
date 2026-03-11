@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Reverb Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+    <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f9fafb; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        input, button { padding: 12px; margin: 8px 0; font-size: 1rem; border-radius: 8px; border: 1px solid #d1d5db; }
+        button { background: #3b82f6; color: white; border: none; cursor: pointer; font-weight: 600; }
+        button:hover { background: #2563eb; }
+        button.red { background: #ef4444; }
+        button.red:hover { background: #dc2626; }
+        #log { height: 450px; overflow-y: auto; background: #f3f4f6; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.92rem; white-space: pre-wrap; }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚀 Laravel Reverb WebSocket Tester</h1>
+    <p><strong>Csatorna:</strong> <code>trip.{trip_id}</code> (private channel)</p>
+
+    <label><strong>Trip ID:</strong></label><br>
+    <input type="text" id="tripId" value="D09581112" style="width: 220px;">
+    <button onclick="connectEcho()" style="margin-left:10px;">Connect & Subscribe</button>
+    <button onclick="disconnectEcho()" class="red">Disconnect</button>
+
+    <div style="margin-top:25px;">
+        <label><strong>Event neve:</strong></label><br>
+        <input type="text" id="eventName" value="vehicle.position-updated" style="width: 320px;">
+        <button onclick="addListener()">Add Listener</button>
+    </div>
+
+    <h3>Log</h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    let echo = null;
+    let channel = null;
+
+    function log(msg, type = '') {
+        const el = document.getElementById('log');
+        const time = new Date().toLocaleTimeString('hu-HU');
+        let prefix = type === 'success' ? '<span class="success">[OK]</span> ' : type === 'error' ? '<span class="error">[ERR]</span> ' : '';
+        el.innerHTML += `${time} ${prefix}${msg}<br>`;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    function connectEcho() {
+        const tripId = document.getElementById('tripId').value.trim();
+        if (!tripId) return log('Írd be a Trip ID-t!', 'error');
+        if (echo) return log('Már csatlakozva vagy!', 'error');
+
+        log('Echo csatlakozás Reverbhez (broadcaster: reverb)...');
+
+        echo = new Echo({
+            broadcaster: 'reverb',
+            key: 'G7qk4AyZUhaUMUYPoniR',
+            wsHost: '127.0.0.1',
+            wsPort: 8080,
+            wssPort: 8080,
+            forceTLS: false,
+            enabledTransports: ['ws', 'wss'],
+            // authEndpoint: '/broadcasting/auth',    // vedd ki a kommentből ha auth kell
+        });
+
+        echo.connector.pusher.connection.bind('connected', () => {
+            log('✅ WebSocket kapcsolódva a Reverbhez!', 'success');
+        });
+
+        const chName = `trip.${tripId}`;
+        log(`Feliratkozás privát csatornára: <b>${chName}</b>`);
+
+        channel = echo.private(chName);
+
+        channel.subscribed(() => log(`🎉 Sikeresen beléptünk: <b>${chName}</b>`, 'success'));
+        channel.error(err => log(`❌ Csatorna hiba: ${JSON.stringify(err)}`, 'error'));
+    }
+
+    function addListener() {
+        if (!channel) return log('Előbb Connect & Subscribe!', 'error');
+        const ev = document.getElementById('eventName').value.trim();
+        log(`Figyeljük: <b>${ev}</b>`);
+        channel.listen(ev, data => {
+            log(`📨 ${ev} érkezett:<br>${JSON.stringify(data, null, 2)}`, 'success');
+        });
+    }
+
+    function disconnectEcho() {
+        if (echo) {
+            echo.disconnect();
+            echo = channel = null;
+            log('✅ Kapcsolat bontva', 'success');
+        }
+    }
+</script>
+</body>
+</html>
