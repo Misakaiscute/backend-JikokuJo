@@ -67,7 +67,7 @@ class VehiclePositionPoller
         $entityCount = count($feed->getEntity());
         Log::info("BKK API visszaküldött {$entityCount} entitást erre a tripre {$this->tripId}");
 
-        //teszteléshez aktv tripek keresése
+        //teszteléshez aktív tripek keresése
         // if ($entityCount > 0) {
         //     $sampleTrips = [];
         //     $entities = $feed->getEntity();

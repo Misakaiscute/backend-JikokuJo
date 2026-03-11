@@ -8,5 +8,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('trip.{tripId}', function ($user, $tripId) {
-    return (new TripPositionChannel())->join($user, $tripId);
+    // return (new TripPositionChannel())->join($user, $tripId);
+    return true;
 });
