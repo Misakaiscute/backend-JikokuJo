@@ -60,13 +60,18 @@
 
         echo = new Echo({
             broadcaster: 'reverb',
-            key: 'G7qk4AyZUhaUMUYPoniR',
+            key: 'KHYzvHnBJ4GcUA4xpqcr',
             wsHost: '127.0.0.1',
             wsPort: 8080,
             wssPort: 8080,
             forceTLS: false,
             enabledTransports: ['ws', 'wss'],
-            // authEndpoint: '/broadcasting/auth',    // vedd ki a kommentből ha auth kell
+
+            authEndpoint: '/broadcasting/auth',
+
+            auth: {
+                withCredentials: true
+            }
         });
 
         echo.connector.pusher.connection.bind('connected', () => {
