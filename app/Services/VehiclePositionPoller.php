@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\VehiclePositionUpdated;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
@@ -15,6 +16,8 @@ class VehiclePositionPoller
     private int $pollInterval = 5; //BKK api endpoint pollolása mpben
     private int $statisticsCheckInterval = 6; //ennyi ciklus után van user watch count check
     private int $iterationCount = 0;
+    private int $consecutiveStatsFailures = 0;
+    private int $maxConsecutiveStatsFailures = 3; //stop csak ha 3x egymás után nem érhető el
 
     public function __construct(string $tripId)
     {
@@ -30,12 +33,29 @@ class VehiclePositionPoller
             if ($this->iterationCount % $this->statisticsCheckInterval === 0) {
                 $watchersCount = $this->getPresenceChannelMemberCount();
 
-                if ($watchersCount === 0) {
-                    Log::info("Nincs néző erre a tripre {$this->tripId} → stopping polling.");
-                    break;
+                if ($watchersCount === -1) {
+                    // Unknown status - continue polling but increment failure counter
+                    $this->consecutiveStatsFailures++;
+                    Log::debug("Ismeretlen néző státusz ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures}), polling folytatódik...");
+                    
+                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
+                        Log::info("Túl sok ismeretlen státusz ellenőrzés, polling leállítása a {$this->tripId} tripre.");
+                        break;
+                    }
+                } else if ($watchersCount === 0) {
+                    // Confirmed 0 watchers
+                    $this->consecutiveStatsFailures++;
+                    Log::debug("0 néző a csatornán ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures})");
+                    
+                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
+                        Log::info("Nincs néző erre a tripre {$this->tripId}, pollingnak vége.");
+                        break;
+                    }
+                } else {
+                    // Confirmed watchers present
+                    $this->consecutiveStatsFailures = 0;
+                    Log::info("{$watchersCount} néző erre a tripre {$this->tripId}");
                 }
-
-                Log::info("{$watchersCount} néző erre a tripre {$this->tripId} ezen a cikluson {$this->iterationCount}");
             }
 
             try {
@@ -127,13 +147,25 @@ class VehiclePositionPoller
                         return (int) $channel['user_count'];
                     }
                 }
+                // Channel nem talált a statsban, valszeg még nincs senki
+                return 0;
             }
         } catch (\Exception $e) {
-            Log::debug("Nem sikerült Reverb statisztikáját lekérni erre a tripre: {$this->tripId}: " . $e->getMessage());
+            Log::debug("Reverb stats endpoint nem elérhető: " . $e->getMessage());
         }
 
-        Log::warning("Nem érhető el Reverb endpointja erre a tripre {$this->tripId}, 0 néző feltételezve");
-        return 0;
+        // Fallback: Check cache for recent channel activity
+        $cacheKey = "channel_activity:{$this->channelName}";
+        $lastActivity = Cache::get($cacheKey, 0);
+        
+        // If there was activity in the last 30 seconds, assume someone is watching
+        if (time() - $lastActivity < 30) {
+            Log::debug("Cache alapján aktív néző feltételezve a {$this->channelName} csatornán");
+            return 1;
+        }
+        
+        Log::debug("Nincs friss aktivitás a {$this->channelName} csatornán");
+        return -1; // Unknown status - continue polling but be more conservative
     }
 
     public function setPollInterval(int $seconds): self

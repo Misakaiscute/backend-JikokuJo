@@ -80,35 +80,42 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
     try {
 
-        // Required for Sanctum SPA authentication
-        await fetch("http://localhost:8000/sanctum/csrf-cookie", {
-            credentials: "include"
-        });
+    await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+        credentials: "include"
+    });
 
-        const response = await fetch('http://localhost:8000/api/user/login/false',{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json',
-                'Accept':'application/json'
-            },
-            credentials:'include',
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
-        });
+    const xsrfToken = decodeURIComponent(
+        document.cookie
+            .split('; ')
+            .find(row => row.startsWith('XSRF-TOKEN='))
+            ?.split('=')[1] || ''
+    );
 
-        const data = await response.json();
+    const response = await fetch('http://localhost:8000/api/user/login/false', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    });
 
-        if(response.ok){
-            window.location.href = "/dashboard";
-        }else{
-            document.getElementById("error").innerText = data.message || "Login failed";
-        }
+    const data = await response.json();
 
-    } catch(err){
-        document.getElementById("error").innerText = "Server error";
+    if (response.ok) {
+        window.location.href = "/dashboard";
+    } else {
+        document.getElementById("error").innerText = data.message || "Login failed";
     }
+
+} catch (err) {
+    document.getElementById("error").innerText = "Server error";
+}
 
 });
 </script>

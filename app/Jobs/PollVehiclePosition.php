@@ -17,15 +17,19 @@ class PollVehiclePosition implements ShouldQueue
 
     public function handle(): void
     {
-        if (file_exists(base_path('.env'))) {
-            $dotenv = \Dotenv\Dotenv::createImmutable(base_path());
-            $dotenv->load();
+        try {
+            Log::info("Trip lekérdezése elkezdődött a háttérben: {$this->tripId}");
+            
+            $poller = new VehiclePositionPoller($this->tripId);
+            $poller->poll();
+            
+            Log::info("Trip lekérdezése befejeződött a háttérben: {$this->tripId}");
+        } catch (\Exception $e) {
+            Log::error("PollVehiclePosition hiba {$this->tripId}: " . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-
-        Log::info("Trip lekérdezése elkezdődött a háttérben: {$this->tripId}");
-        
-        $poller = new VehiclePositionPoller($this->tripId);
-        $poller->poll();
-        Log::info("Trip lekérdezése befejeződött a háttérben: {$this->tripId}");
     }
 }

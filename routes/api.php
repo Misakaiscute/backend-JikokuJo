@@ -7,7 +7,6 @@ use App\Http\Controllers\StopController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehiclePositionController;
-use App\Http\Requests\UserRequest;
 
 //menetrendkereső
 

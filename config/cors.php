@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:84'],
+    // Add any origins you use for local dev (including different ports) so CORS can succeed.
+    'allowed_origins' => [
+        'http://localhost',
+        'http://localhost:84',
+    ],
 
     'allowed_origins_patterns' => [],
 
