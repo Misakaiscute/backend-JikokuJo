@@ -15,8 +15,8 @@ class TripPositionChannel
         }
 
         // Mark channel as active when someone joins
-        $cacheKey = "channel_activity:trip.{$tripId}";
-        Cache::put($cacheKey, time(), 60); // Cache for 60 seconds
+        // $cacheKey = "channel_activity:trip.{$tripId}";
+        // Cache::put($cacheKey, time(), 60); // Cache for 60 seconds
 
         return [
             'id' => $user?->id ?? 'guest-' . session()->getId(),
