@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reverb Tester - Fixed</title>
+    <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
+    <style>body {font-family: Arial; padding:20px;} #log {background:#f8f9fa; padding:15px; height:500px; overflow:auto; border:1px solid #ddd;}</style>
+</head>
+<body>
+
+<h1>Reverb Presence Tester</h1>
+<label>Trip ID: <input type="text" id="tripId" value="D095812028" style="width:300px;"></label><br><br>
+
+<button onclick="connect()">Connect & Join</button>
+<button onclick="disconnect()">Disconnect</button>
+
+<hr>
+<h3>Log</h3>
+<pre id="log"></pre>
+
+<script>
+const token = localStorage.getItem('auth_token');
+
+if (!token) {
+    alert('Nincs token! Először jelentkezz be a login oldalon.');
+}
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'reverb',
+    key: '30vn6whsqydtq41qlhzg',
+    wsHost: '127.0.0.1',
+    wsPort: 8080,
+    forceTLS: false,
+    enabledTransports: ['ws'],
+
+    authorizer: (channel, options) => {
+        return {
+            authorize: (socketId, callback) => {
+                fetch('http://127.0.0.1:8000/api/broadcasting/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        socket_id: socketId,
+                        channel_name: channel.name
+                    })
+                })
+                .then(res => res.json())
+                .then(data => callback(false, data))
+                .catch(err => {
+                    console.error('Auth error:', err);
+                    callback(true, err);
+                });
+            }
+        };
+    }
+});
+
+let channel = null;
+
+function log(msg) {
+    document.getElementById('log').textContent += new Date().toLocaleTimeString() + ' | ' + msg + '\n';
+    document.getElementById('log').scrollTop = 999999;
+}
+
+function connect() {
+    const tripId = document.getElementById('tripId').value.trim();
+    log('Joining presence: trip.' + tripId);
+
+    channel = Echo.join('trip.' + tripId)
+        .here(users => log(`Here: ${users.length} users`))
+        .joining(user => log(`Joining: ${user.name || user.id}`))
+        .leaving(user => log(`Leaving: ${user.name || user.id}`))
+        .error(err => log('ERROR: ' + JSON.stringify(err)));
+}
+
+function disconnect() {
+    if (channel) channel.unsubscribe();
+}
+</script>
+</body>
+</html>

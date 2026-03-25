@@ -15,11 +15,10 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'broadcasting/auth'],
 
     'allowed_methods' => ['*'],
 
-    // Add any origins you use for local dev (including different ports) so CORS can succeed.
     'allowed_origins' => [
         'http://localhost',
         'http://localhost:84',
