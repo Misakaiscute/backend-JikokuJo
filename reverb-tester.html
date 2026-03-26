@@ -20,69 +20,110 @@
 <pre id="log"></pre>
 
 <script>
-const token = localStorage.getItem('auth_token');
-
-if (!token) {
-    alert('Nincs token! Először jelentkezz be a login oldalon.');
-}
-
-window.Pusher = Pusher;
-
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: '30vn6whsqydtq41qlhzg',
-    wsHost: '127.0.0.1',
-    wsPort: 8080,
-    forceTLS: false,
-    enabledTransports: ['ws'],
-
-    authorizer: (channel, options) => {
-        return {
-            authorize: (socketId, callback) => {
-                fetch('http://127.0.0.1:8000/api/broadcasting/auth', {
+    const token = localStorage.getItem('auth_token');
+    
+    if (!token) {
+        alert('Nincs token! Először jelentkezz be a login oldalon.');
+    }
+    
+    window.Pusher = Pusher;
+    
+    window.Echo = new Echo({
+        broadcaster: 'reverb',
+        key: 'G7qk4AyZUhaUMUYPoniR',
+        wsHost: '127.0.0.1',
+        wsPort: 8080,
+        forceTLS: false,
+        enabledTransports: ['ws'],
+    
+        authorizer: (channel, options) => {
+            return {
+                authorize: (socketId, callback) => {
+                    fetch('http://127.0.0.1:8000/api/broadcasting/auth', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            socket_id: socketId,
+                            channel_name: channel.name
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => callback(false, data))
+                    .catch(err => {
+                        console.error('Auth error:', err);
+                        callback(true, err);
+                    });
+                }
+            };
+        }
+    });
+    
+    let channel = null;
+    
+    function log(msg) {
+        document.getElementById('log').textContent += new Date().toLocaleTimeString() + ' | ' + msg + '\n';
+        document.getElementById('log').scrollTop = 999999;
+    }
+    
+    function connect() {
+        const tripId = document.getElementById('tripId').value.trim();
+        if (!tripId) {
+            alert('Add meg a Trip ID-t!');
+            return;
+        }
+    
+        log('🔌 Joining presence channel: trip.' + tripId);
+    
+        channel = Echo.join('trip.' + tripId)
+            .here(users => log(`✅ Here: ${users.length} users online`))
+            .joining(user => log(`👤 Joining: ${user.name || user.id}`))
+            .subscribed(() => {
+                console.log('✅ Successfully subscribed to trip.' + tripId);
+                
+                fetch('http://127.0.0.1:8000/api/channel-activity', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        socket_id: socketId,
-                        channel_name: channel.name
+                        channel: 'trip.' + tripId
                     })
                 })
                 .then(res => res.json())
-                .then(data => callback(false, data))
-                .catch(err => {
-                    console.error('Auth error:', err);
-                    callback(true, err);
-                });
-            }
-        };
+                .then(data => console.log('Channel activity ping sent:', data))
+                .catch(err => console.error('Failed to ping channel activity:', err));
+            })
+            .leaving(user => log(`👋 Leaving: ${user.name || user.id}`))
+            
+            // ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
+            .listen('.vehicle.position-updated', (data) => {
+                log(`📍 Vehicle Position Updated: ${JSON.stringify(data)}`);
+                
+                // Extra szép kiírás a könnyebb olvasáshoz
+                console.log('🚗 Full position data received:', data);
+                
+                if (data.latitude && data.longitude) {
+                    log(`   → Lat: ${data.latitude}, Lng: ${data.longitude}`);
+                }
+            })
+            // ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
+    
+            .error(err => log('❌ ERROR: ' + JSON.stringify(err)));
     }
-});
-
-let channel = null;
-
-function log(msg) {
-    document.getElementById('log').textContent += new Date().toLocaleTimeString() + ' | ' + msg + '\n';
-    document.getElementById('log').scrollTop = 999999;
-}
-
-function connect() {
-    const tripId = document.getElementById('tripId').value.trim();
-    log('Joining presence: trip.' + tripId);
-
-    channel = Echo.join('trip.' + tripId)
-        .here(users => log(`Here: ${users.length} users`))
-        .joining(user => log(`Joining: ${user.name || user.id}`))
-        .leaving(user => log(`Leaving: ${user.name || user.id}`))
-        .error(err => log('ERROR: ' + JSON.stringify(err)));
-}
-
-function disconnect() {
-    if (channel) channel.unsubscribe();
-}
-</script>
+    
+    function disconnect() {
+        if (channel) {
+            channel.unsubscribe();
+            log('🔌 Channel unsubscribed');
+            channel = null;
+        }
+    }
+    </script>
 </body>
 </html>

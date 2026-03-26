@@ -14,10 +14,10 @@ class VehiclePositionPoller
     private string $tripId;
     private string $channelName;
     private int $pollInterval = 5; //BKK api endpoint pollolása mpben
-    private int $statisticsCheckInterval = 6; //ennyi ciklus után van user watch count check
+    private int $statisticsCheckInterval = 8; //ennyi ciklus után van user watch count check
     private int $iterationCount = 0;
     private int $consecutiveStatsFailures = 0;
-    private int $maxConsecutiveStatsFailures = 3; //stop csak ha 3x egymás után nem érhető el
+    private int $maxConsecutiveStatsFailures = 4; //stop csak ha 3x egymás után nem érhető el
 
     public function __construct(string $tripId)
     {
@@ -32,29 +32,19 @@ class VehiclePositionPoller
 
             if ($this->iterationCount % $this->statisticsCheckInterval === 0) {
                 $watchersCount = $this->getPresenceChannelMemberCount();
-
-                if ($watchersCount === -1) {
-                    // Unknown status - continue polling but increment failure counter
-                    $this->consecutiveStatsFailures++;
-                    Log::debug("Ismeretlen néző státusz ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures}), polling folytatódik...");
-                    
-                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
-                        Log::info("Túl sok ismeretlen státusz ellenőrzés, polling leállítása a {$this->tripId} tripre.");
-                        break;
-                    }
-                } else if ($watchersCount === 0) {
-                    // Confirmed 0 watchers
-                    $this->consecutiveStatsFailures++;
-                    Log::debug("0 néző a csatornán ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures})");
-                    
-                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
-                        Log::info("Nincs néző erre a tripre {$this->tripId}, pollingnak vége.");
-                        break;
-                    }
-                } else {
-                    // Confirmed watchers present
+            
+                if ($watchersCount > 0) {
                     $this->consecutiveStatsFailures = 0;
-                    Log::info("{$watchersCount} néző erre a tripre {$this->tripId}");
+                    Log::info("{$watchersCount} néző van a tripen {$this->tripId} → polling folytatódik");
+                } else {
+                    $this->consecutiveStatsFailures++;
+            
+                    Log::debug("Nincs néző ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures})");
+            
+                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
+                        Log::info("Nincs aktív néző a {$this->tripId} tripen. Polling leállítva.");
+                        break;
+                    }
                 }
             }
 
@@ -70,14 +60,29 @@ class VehiclePositionPoller
 
     private function fetchAndBroadcastPosition()
     {
-        $apiKey = env('BKK_API_KEY');        
-        /** @var Response $response */
-        $response = Http::timeout(10)->get(
-            "https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb?key=" . $apiKey
-        );
+        $apiKey = env('BKK_API_KEY');
 
-        if (!$response->successful()) {
-            Log::warning("BKK API státusza {$response->status()} erre a tripre {$this->tripId}");
+        if (empty($apiKey)) 
+        {
+            Log::error("BKK_API_KEY nincs beállítva!");
+            return;
+        }
+
+        $response = Http::withOptions([
+            'verify'          => false,
+            'verify_host'     => false,
+            'verify_peer'     => false,
+            'allow_redirects' => true,
+        ])
+        ->timeout(20)
+        ->connectTimeout(10)
+        ->get("https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb", [
+            'key' => $apiKey
+        ]);
+
+        if (!$response->successful()) 
+        {
+            Log::warning("BKK API hiba | Status: {$response->status()} | Trip: {$this->tripId} | Body: " . substr($response->body(), 0, 500));
             return;
         }
 
@@ -103,69 +108,115 @@ class VehiclePositionPoller
         // }
 
         $found = false;
-        foreach ($feed->getEntity() as $entity) {
+        foreach ($feed->getEntity() as $entity) 
+        {
             $vehiclePos = $entity->getVehicle();
 
-            if ($vehiclePos && $vehiclePos->getTrip() && $vehiclePos->getTrip()->getTripId() === $this->tripId) {
+            if ($vehiclePos && $vehiclePos->getTrip() && $vehiclePos->getTrip()->getTripId() === $this->tripId) 
+            {
                 $found = true;
                 $position = $vehiclePos->getPosition();
-                
-                if ($position) {
-                    $lat = $position->getLatitude();
-                    $lon = $position->getLongitude();
-                    $bearing = $position->getBearing() ?: null;
+            
+                if ($position) 
+                {
+                    $lat = (float) $position->getLatitude();
+                    $lon = (float) $position->getLongitude();
+                    $bearingRaw = $position->getBearing();
+                    $bearing = is_numeric($bearingRaw) ? (float) $bearingRaw : null;
 
-                    broadcast(new VehiclePositionUpdated($this->tripId, $lat, $lon, $bearing));
-                    Log::info("Streamelés a következő tripre: {$this->tripId}: lat={$lat}, lon={$lon}");
-                } else {
+                    broadcast(new VehiclePositionUpdated(
+                        tripId:    $this->tripId,
+                        lat:       $lat,
+                        lon:       $lon,
+                        speed:     null,
+                        bearing:   $bearing,
+                        timestamp: now()->toIso8601String(),
+                        message:   null
+                    ));
+
+                    Log::info("Streamelés a következő tripre: {$this->tripId}: lat={$lat}, lon={$lon}, bearing=" . ($bearing ?? 'null'));
+                } 
+                else 
+                {
                     Log::warning("Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról");
-                }
 
+                    broadcast(new VehiclePositionUpdated(
+                        tripId:    $this->tripId,
+                        lat:       0.0,
+                        lon:       0.0,
+                        speed:     null,
+                        bearing:   null,                    // ← itt biztosan null
+                        timestamp: now()->toIso8601String(),
+                        message:   "Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról"
+                    ));
+                }
                 break;
             }
         }
 
-        if (!$found) {
+        // Ha a trip egyáltalán nem található a feed-ben
+        if (!$found) 
+        {
             Log::debug("Trip {$this->tripId} nem aktív jelenleg");
+
+            broadcast(new VehiclePositionUpdated(
+                tripId:    $this->tripId,
+                lat:       0.0,
+                lon:       0.0,
+                speed:     null,
+                bearing:   null,                    // ← itt is biztosan null
+                timestamp: now()->toIso8601String(),
+                message:   "Trip {$this->tripId} nem aktív jelenleg"
+            ));
         }
     }
-
+    
     private function getPresenceChannelMemberCount(): int
     {
-        try {
-            /** @var Response $response */
-            $response = Http::timeout(5)->get("http://localhost:8080/stats/channels", [
-                'channels' => [$this->channelName],
-            ]);
+        $appId = env('REVERB_APP_ID', '806509');
 
-            if ($response->successful()) {
+        try 
+        {
+            $response = Http::timeout(8)
+                ->get("http://127.0.0.1:8080/apps/{$appId}/channels/{$this->channelName}");
+
+            if ($response->successful()) 
+            {
                 $data = $response->json();
-                $channels = $data['channels'] ?? [];
+                $userCount = (int) ($data['user_count'] ?? $data['subscription_count'] ?? 0);
                 
-                foreach ($channels as $channel) {
-                    if ($channel['name'] === $this->channelName && isset($channel['user_count'])) {
-                        return (int) $channel['user_count'];
-                    }
+                Log::debug("Reverb stats | {$this->channelName} | user_count: {$userCount}");
+                
+                if ($userCount > 0) {
+                    $this->consecutiveStatsFailures = 0;
+                    return $userCount;
                 }
-                // Channel nem talált a statsban, valszeg még nincs senki
-                return 0;
+            } else 
+            {
+                Log::debug("Reverb stats status: " . $response->status() . " (várható 401, ha nincs auth)");
             }
-        } catch (\Exception $e) {
-            Log::debug("Reverb stats endpoint nem elérhető: " . $e->getMessage());
+        } catch (\Exception $e) 
+        {
+            Log::debug("Reverb stats hívás sikertelen: " . $e->getMessage());
         }
 
-        // Fallback: Check cache for recent channel activity
         $cacheKey = "channel_activity:{$this->channelName}";
         $lastActivity = Cache::get($cacheKey, 0);
-        
-        // If there was activity in the last 30 seconds, assume someone is watching
-        if (time() - $lastActivity < 30) {
-            Log::debug("Cache alapján aktív néző feltételezve a {$this->channelName} csatornán");
+
+        if (time() - $lastActivity < 90) 
+        {
+            Log::debug("Cache alapján AKTÍV néző van a {$this->channelName} csatornán");
+            $this->consecutiveStatsFailures = 0;
             return 1;
         }
-        
-        Log::debug("Nincs friss aktivitás a {$this->channelName} csatornán");
-        return -1; // Unknown status - continue polling but be more conservative
+
+        Log::debug("Nincs friss cache aktivitás → 0 néző feltételezve");
+        return 0;
+    }
+
+    private function getReverbAppId(): string
+    {
+        return env('REVERB_APP_ID', '271825');
     }
 
     public function setPollInterval(int $seconds): self

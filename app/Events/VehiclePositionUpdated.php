@@ -20,7 +20,7 @@ class VehiclePositionUpdated implements ShouldBroadcastNow
         public ?float $speed = null,
         public ?float $bearing = null,
         public ?string $timestamp = null,
-        // public ?string $vehicleId = null,
+        public ?string $message = null,
     ) {
         $this->timestamp ??= now()->toIso8601String();
     }
@@ -50,6 +50,7 @@ class VehiclePositionUpdated implements ShouldBroadcastNow
             'speed'      => $this->speed,
             'bearing'    => $this->bearing,
             'updated_at' => $this->timestamp,
+            'message'    => $this->message,
         ];
     }
 

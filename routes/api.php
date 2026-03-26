@@ -7,6 +7,7 @@ use App\Http\Controllers\StopController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehiclePositionController;
+use App\Http\Controllers\ChannelActivityController;
 
 //menetrendkereső
 
@@ -42,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function ()
     //hozzáadja vagy kiveszi a tripet a kedvencek közül, adatok: trip_id
     Route::get('/user/favourites', [UserController::class, 'favourites']);
     //favouritek listázása
+    Route::post('/channel-activity', [ChannelActivityController::class, 'ping']);
 });
 
 Route::get('/vehicle-positions/poll/{tripId}', [VehiclePositionController::class, 'startPolling']);
