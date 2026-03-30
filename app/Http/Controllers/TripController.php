@@ -165,103 +165,103 @@ class TripController extends Controller
         $date = $request->input('date') ?? Carbon::today()->format('Ymd');
         $time = $request->input('time') ?? Carbon::now()->format('Hi');
         $stopIdsInput = $request->input('ids');
-
+    
         if (is_null($stopIdsInput)) {
             return response()->json([
                 'errors' => ['"ids" paraméter megadása kötelező (tömb vagy vesszővel elválasztott string).']
             ], 400, [], JSON_UNESCAPED_UNICODE);
         }
-
+    
         if (is_string($stopIdsInput)) {
             $stopIdsInput = array_filter(
                 array_map('trim', explode(',', $stopIdsInput))
             );
         }
-
+    
         if (!is_array($stopIdsInput)) {
             $stopIdsInput = [];
         }
-
+    
         $stopIds = collect($stopIdsInput)
             ->map(fn($id) => trim((string)$id))
             ->filter(fn($id) => $id !== '' && $id !== null)
             ->unique()
             ->values();
-
+    
         if ($stopIds->isEmpty()) {
             return response()->json([
                 'errors' => ['Legalább egy érvényes stop azonosító szükséges az "ids" mezőben.']
             ], 400, [], JSON_UNESCAPED_UNICODE);
         }
-
+    
         if (!preg_match('/^\d{8}$/', $date)) {
             return response()->json([
                 'errors' => ['Hibás dátum formátum (YYYYMMDD).']
             ], 400, [], JSON_UNESCAPED_UNICODE);
         }
-
+    
         if ($time && (!preg_match('/^\d{4}$/', $time) || $time > '2359')) {
             return response()->json([
                 'errors' => ['Hibás időformátum (HHMM).']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-
+    
         $targetMinutes = null;
         if ($time) {
             $hour          = (int) substr($time, 0, 2);
             $minute        = (int) substr($time, 2, 2);
             $targetMinutes = $hour * 60 + $minute;
         }
-
+    
         $activeServices = DB::table('calendar_dates')
             ->where('date', $date)
             ->where('exception_type', 1)
             ->pluck('service_id');
-
+    
         if ($activeServices->isEmpty()) {
             return response()->json([
                 'data'   => ['trips' => []],
                 'errors' => ['Nincs elérhető járat ezen a napon.']
             ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-
+    
         $tripsQuery = Trip::query()
             ->whereIn('service_id', $activeServices);
-
+    
         if ($targetMinutes !== null) {
             $windowStart = $targetMinutes;
             $windowEnd   = $targetMinutes + 120;
-
+    
             $tripsInWindow = DB::table('stop_times')
                 ->whereIn('stop_id', $stopIds)
                 ->whereBetween('departure_time', [$windowStart, $windowEnd])
                 ->distinct()
                 ->pluck('trip_id');
-            
+                
             if ($tripsInWindow->isEmpty()) {
                 return response()->json([
                     'data'   => ['trips' => []],
                     'errors' => ['Nincs elérhető járat a megadott időintervallumban ezeknél a megállóknál.']
                 ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
-
+    
             $tripsQuery->whereIn('id', $tripsInWindow);
         } else {
             $tripsWithStop = DB::table('stop_times')
                 ->whereIn('stop_id', $stopIds)
                 ->distinct()
                 ->pluck('trip_id');
-
+    
             if ($tripsWithStop->isEmpty()) {
                 return response()->json([
                     'data'   => ['trips' => []],
                     'errors' => ['A megadott megálló(k)hoz nem tartozik járat.']
                 ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
-
+    
             $tripsQuery->whereIn('id', $tripsWithStop);
         }
-
+    
         $trips = $tripsQuery
             ->select([
                 'id', 'route_id', 'service_id', 'trip_headsign',
@@ -275,6 +275,25 @@ class TripController extends Controller
                     ->select('id', 'name', 'lat', 'lon', 'code')
             ])
             ->get()
+            ->filter(function ($trip) use ($stopIds) {
+                $stopTimes = $trip->stopTimes;
+
+                $requestedStopTimes = $stopTimes->whereIn('stop_id', $stopIds);
+
+                if ($requestedStopTimes->isEmpty()) {
+                    return false;
+                }
+
+                $lastStopInTrip = $stopTimes->last();
+
+                foreach ($requestedStopTimes as $req) {
+                    if ($req->stop_sequence === $lastStopInTrip->stop_sequence) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
             ->map(function ($trip) use ($stopIds) {
                 $timesAtRequestedStops = $trip->stopTimes
                     ->whereIn('stop_id', $stopIds)
@@ -339,19 +358,5 @@ class TripController extends Controller
             'data'   => ['trips' => $trips],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
-
-    private function formatStop($stopTime)
-    {
-        return [
-            'stop_id'        => $stopTime->stop_id,
-            'stop_name'      => $stopTime->stop->stop_name ?? $stopTime->stop->name ?? '',
-            'stop_sequence'  => $stopTime->stop_sequence,
-            'arrival_time'   => $stopTime->arrival_time,
-            'location'       => [
-                'lat' => (float) ($stopTime->stop->stop_lat ?? $stopTime->stop->lat ?? 0),
-                'lon' => (float) ($stopTime->stop->stop_lon ?? $stopTime->stop->lon ?? 0),
-            ],
-        ];
     }
 }
