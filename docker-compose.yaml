@@ -24,7 +24,7 @@ services:
     networks:
       - jikokujo
   
-  nginx:
+  api:
     image: nginx:1.29.5
     container_name: jikokujo-nginx
     restart: unless-stopped
@@ -33,6 +33,30 @@ services:
     volumes:
       - ./:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - jikokujo
+
+  reverb:
+    build:
+      context: ./docker-compose/supervisor/
+      dockerfile: Dockerfile
+    image: jikokujo
+    container_name: jikokujo-reverb-worker
+    restart: unless-stopped
+    volumes:
+      - ./docker-compose/supervisor/reverb-worker.conf:/etc/supervisor/conf.d/reverb-worker.conf
+    networks:
+      - jikokujo
+
+  job-queue:
+    build:
+      context: ./docker-compose/supervisor/
+      dockerfile: Dockerfile
+    image: jikokujo
+    container_name: jikokujo-queue-worker
+    restart: unless-stopped
+    volumes:
+      - ./docker-compose/supervisor/queue-worker.conf:/etc/supervisor/conf.d/queue-worker.conf
     networks:
       - jikokujo
 

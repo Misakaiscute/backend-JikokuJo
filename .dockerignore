@@ -5,4 +5,4 @@ storage/logs/*
 .editorconfig
 .git
 README.md
-docker-compose
+docker-compose.yaml
