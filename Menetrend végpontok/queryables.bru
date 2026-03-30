@@ -10,6 +10,14 @@ get {
   auth: none
 }
 
+headers {
+  Accept-Encoding: gzip
+}
+
+vars:pre-request {
+  api_url: http://localhost:8000/api
+}
+
 docs {
   This request retrieves a list of users from the JSONPlaceholder API.
 }
