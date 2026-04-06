@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Trip;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
 use Exception;
@@ -25,6 +26,9 @@ class UserController extends Controller
                 'errors' => ['Invalid email or password'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
+
+        Auth::login($user);
+        $request->session()->regenerate();
 
         $user->tokens()->delete();
 
