@@ -3,7 +3,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: jikokujo
+    image: local/jikokujo
     container_name: jikokujo-backend
     restart: unless-stopped
     volumes:
@@ -40,7 +40,7 @@ services:
     build:
       context: ./docker-compose/supervisor/
       dockerfile: Dockerfile
-    image: jikokujo
+    image: local/jikokujo-ws
     container_name: jikokujo-reverb-worker
     restart: unless-stopped
     volumes:
@@ -52,7 +52,7 @@ services:
     build:
       context: ./docker-compose/supervisor/
       dockerfile: Dockerfile
-    image: jikokujo
+    image: local/jikokujo-job-queue
     container_name: jikokujo-queue-worker
     restart: unless-stopped
     volumes:
@@ -63,3 +63,6 @@ services:
 networks:
   jikokujo:
     driver: bridge
+
+volumes:
+  app-vendor-volume:

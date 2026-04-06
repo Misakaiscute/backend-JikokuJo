@@ -18,4 +18,8 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-CMD ["php", "artisan", "key:generate"]
+COPY docker-compose/entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["php-fpm"]
