@@ -17,3 +17,5 @@ RUN composer install \
     --optimize-autoloader \
     --no-interaction \
     --prefer-dist
+
+CMD ["php", "artisan", "key:generate"]
