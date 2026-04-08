@@ -12,6 +12,11 @@ services:
       timeout: 30s
       retries: 10
       start_period: 3m
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - app-volume:/var/www
     depends_on:
@@ -35,6 +40,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: true
       MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - database-volume:/var/lib/mysql
     networks:
       - jikokujo
   
@@ -65,7 +72,7 @@ services:
         condition: service_healthy
       app:
         condition: service_healthy
-    command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=8080
+    command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT}
     networks:
       - jikokujo
 
@@ -91,3 +98,4 @@ networks:
 
 volumes:
   app-volume:
+  database-volume:

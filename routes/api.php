@@ -23,8 +23,6 @@ Route::get('/trip/{trip_id}/shapes', [ShapeController::class, 'getShapesByTripId
 Route::get('/trip/{trip_id}/stops', [StopController::class, 'getStopsByTripId']);
 //visszaadja az összes megállóját egy tripnek
 
-
-
 //user
 
 Route::post('/user/login/{rememberUser}', [UserController::class, 'login']);

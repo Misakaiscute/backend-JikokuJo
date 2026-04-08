@@ -26,14 +26,13 @@ class UserController extends Controller
                 'errors' => ['Hibás email cím vagy jelszó.'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-
+        //Set the session cookie for browsers
         Auth::login($user);
         $request->session()->regenerate();
 
+        //Create the token for mobile devices
         $user->tokens()->delete();
-
         $expiresAt = Carbon::now()->addDays($rememberUser ? 14 : 1);
-
         $token = $user->createToken(
             'access_token',
             ['*'],
