@@ -1,8 +1,8 @@
-vendor/*
-storage/logs/*
-"Menetrend vépontok"
-"User végpontok"
-.editorconfig
-.git
-README.md
-docker-compose.yaml
+/vendor/*
+/storage/logs/*
+/"Menetrend vépontok"
+/"User végpontok"
+/.editorconfig
+/.git
+/README.md
+/docker-compose.yaml

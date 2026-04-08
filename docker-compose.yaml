@@ -2,20 +2,34 @@ services:
   app:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: docker-compose/laravel/main/Dockerfile
     image: local/jikokujo
-    container_name: jikokujo-backend
+    container_name: backend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "artisan", "migrate:status"]
+      interval: 1m
+      timeout: 30s
+      retries: 10
+      start_period: 3m
     volumes:
-      - ./:/var/www
+      - app-volume:/var/www
+    depends_on:
+      database:
+        condition: service_healthy
     networks:
       - jikokujo
 
   database:
     image: mysql:9.6.0
     command: --restrict-fk-on-non-standard-key=OFF
-    container_name: jikokujo-database
+    container_name: database
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+      start_period: 10s
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -26,37 +40,48 @@ services:
   
   api:
     image: nginx:1.29.5
-    container_name: jikokujo-nginx
+    container_name: nginx
     restart: unless-stopped
     ports:
       - 8000:80
+    depends_on:
+      reverb:
+        condition: service_started
     volumes:
-      - ./:/var/www
+      - app-volume:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d
     networks:
       - jikokujo
 
   reverb:
     build:
-      context: ./docker-compose/supervisor/
-      dockerfile: Dockerfile
-    image: local/jikokujo-ws
-    container_name: jikokujo-reverb-worker
+      context: ./
+      dockerfile: docker-compose/laravel/dependants/Dockerfile
+    image: local/jikokujo-reverb
+    container_name: reverb
     restart: unless-stopped
-    volumes:
-      - ./docker-compose/supervisor/reverb-worker.conf:/etc/supervisor/conf.d/reverb-worker.conf
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=8080
     networks:
       - jikokujo
 
   job-queue:
     build:
-      context: ./docker-compose/supervisor/
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: docker-compose/laravel/dependants/Dockerfile
     image: local/jikokujo-job-queue
-    container_name: jikokujo-queue-worker
+    container_name: job-queue
     restart: unless-stopped
-    volumes:
-      - ./docker-compose/supervisor/queue-worker.conf:/etc/supervisor/conf.d/queue-worker.conf
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    command: php /var/www/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
     networks:
       - jikokujo
 
@@ -65,4 +90,4 @@ networks:
     driver: bridge
 
 volumes:
-  app-vendor-volume:
+  app-volume:

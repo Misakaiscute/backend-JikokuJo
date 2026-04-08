@@ -23,7 +23,7 @@ class UserController extends Controller
         if (!$user || !Hash::check($password, $password ? $user->password : '')) {
             return response()->json([
                 'data'   => [],
-                'errors' => ['Invalid email or password'],
+                'errors' => ['Hibás email cím vagy jelszó.'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -133,9 +133,11 @@ class UserController extends Controller
         if(!$favourites)
         {
             return response()->json([
-            'data'   => ['Nincs egy kedvenc trip sem.'],
-            'errors' => []
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                'data'   => [
+                    'favourites' => []
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         return response()->json([

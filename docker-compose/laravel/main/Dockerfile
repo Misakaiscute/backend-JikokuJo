@@ -3,7 +3,7 @@ FROM php:8.4-fpm
 RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
-    && docker-php-ext-install zip pdo_mysql \
+    && docker-php-ext-install zip pdo_mysql pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=composer:2.9.5 /usr/bin/composer /usr/bin/composer
@@ -18,7 +18,7 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-COPY docker-compose/entrypoint.sh /entrypoint.sh
+COPY ./docker-compose/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
