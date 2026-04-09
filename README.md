@@ -1,59 +1,33 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# JikokuJó, a public transport helper.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## JikokuJó is trusty companion for finding your way around the streets of Budapest, created by Máté Demény and Hunor Horchy as part of their highschool exit masterpiece.
 
-## About Laravel
+## Using offcial data from the local public transport provider (BKK), the app is capable of:
+- ### 🔎 Searching for either line numbers or specific stops around Budapest for a given timeframe.
+- ### 🗺️ Displaying the route of any local vehicle on the map.
+- ### 📌 Following the line on its way if the given vehicle is equipped with trackers.
+- ### ⭐ Storing users favorite trips and notifying them about it them depending on how the user set it up.
+- ### ✈️ Sharing routes as links with friend to aid with planning.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Using what?
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### This part of the project is an API, powered by [PHP](https://www.php.net), using the [Laravel framework](https://laravel.com) for its ease of developing with. It's connected to a [MySQL](https://www.mysql.com) database, and is served to users with [NGINX](https://nginx.org).
+### With the use of [Docker](https://www.docker.com) the entire application can be initialized and run with the use of a single command. This avoids version conflicts with users machines, and allows for a sanitized environment, thanks to the nature of Docker containers.
+### The package manager for this project is [Composer](https://getcomposer.org).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## How to install
+### Requirements:
+- #### Docker Desktop and Docker CLI
+- #### About 10 GB of free space
+- #### Internet access
 
-## Learning Laravel
+### Installation process:
+1. #### Clone the repository into your selected directory
+2. #### Editing the **.env.example** file if required, and renaming it to **.env**. (No need to change anything out of the box. Changing values in it is not recommended.)
+3. #### Run the **docker compose up** command from the directory. This will start setting up the app
+4. #### Wait for about 6-7 minutes until the Docker containers boot up, and the application fetches its initial data if required.
+5. #### Go to **http://localhost:8000/api/(endpoint)** in your choosen browser.
+6. #### 🏁You're good to go!🏁
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## ⚠️Warning⚠️
+### This is just one repository of the three, which make up the complete project. Whilst this repository may be able to be used your own applications, we still recommend checking out the [mobile app](https://github.com/Misakaiscute/mobile-JikokuJo) and the [web app](https://github.com/Misakaiscute/frontend-JikokuJo) for the full experience.
