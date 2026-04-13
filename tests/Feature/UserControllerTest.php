@@ -112,6 +112,24 @@ class UserControllerTest extends TestCase
         ]);
     }
 
+    public function test_update_stores_user_fcm_token()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->putJson('/api/user/update', [
+            'fcm_token' => 'sample-device-token',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('errors', []);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'fcm_token' => 'sample-device-token',
+        ]);
+    }
+
     public function test_destroy_deletes_authenticated_user()
     {
         $user = User::factory()->create();

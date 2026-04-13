@@ -5,6 +5,7 @@ use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schedule;
+use App\Services\TripAlertPoller;
 
 
 // Schedule::call(DatabaseSeeder::seed_database())
@@ -21,3 +22,8 @@ use Illuminate\Support\Facades\Schedule;
 //     });
 
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
+Schedule::command('poll:trip-alerts')->everyThirtySeconds();
+
+Artisan::command('poll:trip-alerts', function () {
+    (new TripAlertPoller())->poll();
+})->describe('Poll BKK GTFS-Realtime trip updates and notify users about delays or cancellations.');

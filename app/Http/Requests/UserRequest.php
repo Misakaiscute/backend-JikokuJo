@@ -57,6 +57,7 @@ class UserRequest extends FormRequest
                 Rule::unique('users')->ignore($this->user()?->id),
             ],
             'password'      => ['sometimes', 'min:8', 'confirmed'],
+            'fcm_token'    => ['sometimes', 'string', 'max:2048'],
         ];
     }
 

@@ -80,6 +80,7 @@ class VehiclePositionPoller
             'key' => $apiKey
         ]);
 
+        /** @var Response $response */
         if (!$response->successful()) 
         {
             Log::warning("BKK API hiba | Status: {$response->status()} | Trip: {$this->tripId} | Body: " . substr($response->body(), 0, 500));
@@ -179,6 +180,7 @@ class VehiclePositionPoller
         {
             $reverb = env('REVERB_SCHEMA') . "://" . env('REVERB_HOST') . ':' . env('REVERB_PORT');
 
+            /** @var Response $response */
             $response = Http::timeout(8)
                 ->get("{$reverb}/apps/{$appId}/channels/{$this->channelName}");
 

@@ -33,12 +33,14 @@ class User extends Authenticatable
         'first_name',
         'second_name',
         'email',
-        'password'
+        'password',
+        'fcm_token',
     ];
 
     protected $hidden = [
         'password',
         'email_verified_at',
+        'fcm_token',
         'created_at',
         'updated_at'
     ];
