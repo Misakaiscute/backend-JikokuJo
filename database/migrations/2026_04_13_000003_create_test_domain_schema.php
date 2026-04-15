@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public function shouldRun(): bool
+    {
+        // Csak teszt környezetben fusson le
+        return app()->environment('testing') || config('app.env') === 'local_testing';
+    }
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
