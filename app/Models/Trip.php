@@ -91,17 +91,4 @@ class Trip extends Model
                       ->orderBy('stop_times.stop_sequence');
     }
 
-    public function favouritedBy()
-    {
-        return $this->belongsToMany(User::class, 'favourites', 'trip_id', 'user_id');
-    }
-
-    public function isFavouritedBy(?User $user)
-    {
-        if (!$user?->exists) {
-            return false;
-        }
-        
-        return $this->favouritedBy()->where('user_id', $user->id)->exists();
-    }
 }

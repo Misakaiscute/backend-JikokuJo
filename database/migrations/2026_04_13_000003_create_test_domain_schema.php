@@ -87,8 +87,9 @@ return new class extends Migration
         Schema::create('favourites', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('trip_id');
-            $table->unique(['user_id', 'trip_id']);
+            $table->string('route_id');
+            $table->string(('time'));
+            $table->unique('user_id');
         });
     }
 

@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function ()
     Route::delete('/user/delete', [UserController::class, 'destroy']);
     //token alapján töröl nem kell beadni semmit
     Route::post('/routes/favourite/toggle', [UserController::class, 'toggleFavourite']);
-    //hozzáadja vagy kiveszi a tripet a kedvencek közül, adatok: trip_id
+    //hozzáadja vagy kiveszi a routeot a kedvencek közül, adatok: route_id, time (HHMM)
     Route::get('/user/favourites', [UserController::class, 'favourites']);
     //favouritek listázása
     Route::post('/channel-activity', [ChannelActivityController::class, 'ping']);

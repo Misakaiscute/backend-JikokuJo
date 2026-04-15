@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Trip;
+use App\Models\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
@@ -54,15 +54,7 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    public function store(UserRequest $request)
-    {
-        $user = User::create($request->all());
-
-        return response()->json([
-            'data'   => ['user' => $user],
-            'errors' => []
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
+    
 
     public function update(UserRequest $request)
     {
@@ -105,20 +97,37 @@ class UserController extends Controller
 
     public function toggleFavourite(UserRequest $request)
     {
-        $trip_id = $request->trip_id;
+        $user = $request->user();
+        $route_id = $request->route_id;
+        $time = $request->time;
         try
         {
-            Trip::findOrFail($trip_id);
+            Route::findOrFail($route_id);
         }
         catch(Exception $e)
         {
             return response()->json([
             'data'   => [],
-            'errors' => ["Nincs trip ilyen id-vel."]
-        ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            'errors' => ["Nincs route ilyen id-vel."]
+            ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        $request->user()->favourites()->toggle($trip_id);
-
+        $exists = $user->favourites()
+                   ->wherePivot('route_id', $route_id)
+                   ->wherePivot('time', $time)
+                   ->exists();
+        if ($exists) 
+            {
+            $user->favourites()
+                ->wherePivot('route_id', $route_id)
+                ->wherePivot('time', $time)
+                ->detach();
+        } 
+        else 
+        {
+            $user->favourites()->attach($route_id, [
+                'time' => $time
+            ]);
+        }
         return response()->json([
             'data'   => [],
             'errors' => []
@@ -128,16 +137,15 @@ class UserController extends Controller
     public function favourites(UserRequest $request)
     {
         $user = $request->user();
-        $favourites = $user->favourites;
-        if(!$favourites)
-        {
-            return response()->json([
-                'data'   => [
-                    'favourites' => []
-                ],
-                'errors' => []
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
+
+        $favourites = $user->favourites()
+                        ->get()
+                        ->map(function ($route) {
+                            return [
+                                'route_id' => $route->id,
+                                'time'     => $route->pivot->time,
+                            ];
+                        });
 
         return response()->json([
             'data'   => [

@@ -59,4 +59,17 @@ class Route extends Model
         return $this->hasMany(Trip::class, 'route_id');
     }
 
+    public function favouritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favourites', 'route_id', 'user_id');
+    }
+
+    public function isFavouritedBy(?User $user)
+    {
+        if (!$user?->exists) {
+            return false;
+        }
+        
+        return $this->favouritedBy()->where('user_id', $user->id)->exists();
+    }
 }
