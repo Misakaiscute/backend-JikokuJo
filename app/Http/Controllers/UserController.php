@@ -158,7 +158,7 @@ class UserController extends Controller
                 ->detach();
                 return response()->json([
                     'data'   => [
-                        'route_id' => $route_id,
+                        'route_id'   => $route_id,
                         'new_status' => false
                     ],
                     'errors' => []
@@ -171,7 +171,7 @@ class UserController extends Controller
             ]);
             return response()->json([
                 'data'   => [
-                    'route_id' => $route_id,
+                    'route_id'   => $route_id,
                     'new_status' => true
                 ],
                 'errors' => []
@@ -188,7 +188,7 @@ class UserController extends Controller
                         ->get()
                         ->map(function ($route) {
                             return [
-                                'route_id' => $route->id,
+                                'route'    => $route,
                                 'time'     => $route->pivot->time,
                             ];
                         });
