@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
+use Laravel\Sanctum\PersonalAccessToken;
 use Exception;
 
 class UserController extends Controller
@@ -47,15 +48,16 @@ class UserController extends Controller
 
     public function log_out(UserRequest $request)
     {
-        //Tokenes kérés (mobil)
-        if ($request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
+        if ($user = $request->user()) {
+            $token = $user->currentAccessToken();
+    
+            if ($token instanceof PersonalAccessToken) {
+                $token->delete();
+            }
+    
+            Auth::logout();
         }
-
-        // Web session logout
-        Auth::logout();
-
-        // Session kezelés
+    
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
