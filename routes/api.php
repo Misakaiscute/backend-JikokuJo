@@ -16,7 +16,7 @@ Route::get('/queryables', [SearchController::class, 'queryables']);
 Route::post('/stop/trip', [TripController::class, 'getTripsByStopId']);
 //visszaadja az összes utat ami érint egy megállót
 //adatok: date, time, ids
-Route::post('/route/time', [TripController::class, 'getTripsByRouteId']);
+Route::post('/route/trip', [TripController::class, 'getTripsByRouteId']);
 //ITT VÁLTOZOTT
 //visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján 
 //adatok: date (YYYYMMDD), time (HHMM), route_id
