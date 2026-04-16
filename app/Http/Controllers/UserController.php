@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
+use Laravel\Sanctum\PersonalAccessToken;
 use Exception;
 
 class UserController extends Controller
@@ -47,6 +48,32 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
+    public function log_out(UserRequest $request)
+    {
+        if ($user = $request->user()) {
+
+            // Token (API)
+            $token = $user->currentAccessToken();
+            if ($token instanceof PersonalAccessToken) {
+                $token->delete();
+            }
+    
+            // Session (web)
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'data'      => [],
+            'errors'    => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function get(UserRequest $request) {
         return response()->json([
             'data' => [
@@ -56,7 +83,15 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    
+    public function store(UserRequest $request)
+    {
+        $user = User::create($request->all());
+
+        return response()->json([
+            'data'   => ['user' => $user],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
 
     public function update(UserRequest $request)
     {
@@ -123,17 +158,28 @@ class UserController extends Controller
                 ->wherePivot('route_id', $route_id)
                 ->wherePivot('time', $time)
                 ->detach();
+                return response()->json([
+                    'data'   => [
+                        'route'   => Route::find($route_id),
+                        'new_status' => false
+                    ],
+                    'errors' => []
+                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } 
         else 
         {
             $user->favourites()->attach($route_id, [
                 'time' => $time
             ]);
+            return response()->json([
+                'data'   => [
+                    'route'   => Route::find($route_id),
+                    'new_status' => true
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        return response()->json([
-            'data'   => [],
-            'errors' => []
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        
     }
 
     public function favourites(UserRequest $request)
@@ -144,7 +190,7 @@ class UserController extends Controller
                         ->get()
                         ->map(function ($route) {
                             return [
-                                'route_id' => $route->id,
+                                'route'    => $route,
                                 'time'     => $route->pivot->time,
                             ];
                         });

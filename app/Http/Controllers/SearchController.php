@@ -60,15 +60,15 @@ class SearchController extends Controller
         });
 
         $routes = Route::select('id', 'short_name', 'color', 'type')
-                    ->get()
-                    ->map(function ($route) {
-                        return [
-                            'route_id'         => $route->id,
-                            'route_short_name' => $route->short_name,
-                            'type'             => $this->getRouteTypeCategory($route->type),
-                            'color'            => $route->color,
-                        ];
-                    });
+            ->get()
+            ->map(function ($route) {
+                return [
+                    'id' => $route->id,
+                    'short_name' => $route->short_name,
+                    'type' => $this->getRouteTypeCategory($route->type),
+                    'color' => $route->color,
+                ];
+            });
 
         if ($stops->isEmpty() && $routes->isEmpty()) 
         {
