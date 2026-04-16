@@ -16,18 +16,25 @@ Route::get('/queryables', [SearchController::class, 'queryables']);
 Route::post('/stop/trip', [TripController::class, 'getTripsByStopId']);
 //visszaadja az összes utat ami érint egy megállót
 //adatok: date, time, ids
-Route::get('/route/{route_id}/time/{date}/{time}', [TripController::class, 'getTripsByRouteId']);
-//visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján (YYYYMMDD pl {20260107}), (HHMM pl {1431})
-Route::get('/trip/{trip_id}/shapes', [ShapeController::class, 'getShapesByTripId']);
+Route::post('/route/time', [TripController::class, 'getTripsByRouteId']);
+//ITT VÁLTOZOTT
+//visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján 
+//adatok: date (YYYYMMDD), time (HHMM), route_id
+Route::post('/trip/shapes', [ShapeController::class, 'getShapesByTripId']);
+//ITT VÁLTOZOTT
 //visszaadja az összes shape pontját egy tripnek
-Route::get('/trip/{trip_id}/stops', [StopController::class, 'getStopsByTripId']);
+//adatok: trip_id
+Route::post('/trip/stops', [StopController::class, 'getStopsByTripId']);
+//ITT VÁLTOZOTT 
 //visszaadja az összes megállóját egy tripnek
+//adatok: trip_id
 
 //user
 
-Route::post('/user/login/{rememberUser}', [UserController::class, 'login']);
+Route::post('/user/login', [UserController::class, 'login']);
+//ITT VÁLTOZOTT
 //rememberUser változó (default false) arra ha a login tokenje 7 napig legyen érvényes (default 1 nap) 
-//adatok: email, password
+//adatok: email, password, remember_user
 Route::post('/user/register', [UserController::class, 'store']);
 //adatok: first_name, second_name, email, password, password_confirmation
 Route::middleware('auth:sanctum')->group(function () 

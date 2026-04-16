@@ -4,10 +4,18 @@ meta {
   seq: 4
 }
 
-get {
-  url: {{api_url}}/route/0050/time/20260129/1400
-  body: none
+post {
+  url: {{api_url}}/route/time
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "date": "20260416",
+    "time": "1900",
+    "route_id": "0050"
+  }
 }
 
 settings {

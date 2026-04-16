@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\SearchController;
 use App\Models\User;
 use App\Models\Route;
 use Illuminate\Support\Facades\Hash;
@@ -13,10 +14,11 @@ use Exception;
 
 class UserController extends Controller
 {
-    public function login(UserRequest $request, ?bool $rememberUser = false)
+    public function login(UserRequest $request)
     {
         $email = $request->input('email');
         $password = $request->input('password');
+        $rememberUser = $request->input('remember_user') ?? false;
 
         $user = User::where('email', $email)->first();
 

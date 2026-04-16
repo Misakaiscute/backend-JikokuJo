@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Trip;
+use App\Http\Requests\TripRequest;
 
 class StopController extends Controller
 {
-    public function getStopsByTripId(string $trip_id)
+    public function getStopsByTripId(TripRequest $request)
     {
+        $trip_id = $request->input('trip_id');
         $trip = Trip::query()
             ->with([
                 'stopTimes' => fn($q) => $q

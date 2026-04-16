@@ -4,10 +4,16 @@ meta {
   seq: 5
 }
 
-get {
-  url: {{api_url}}/trip/D099291934/stops
-  body: none
+post {
+  url: {{api_url}}/trip/stops
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "trip_id": "12345678"
+  }
 }
 
 settings {

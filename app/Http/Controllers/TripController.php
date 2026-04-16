@@ -11,10 +11,11 @@ use Carbon\Carbon;
 
 class TripController extends Controller
 {
-    public function getTripsByRouteId(string $route_id, ?string $date = null, ?string $time = null)
+    public function getTripsByRouteId(TripRequest $request)
     {
-        $date = $date ?? Carbon::today()->format('Ymd');
-        $time = $time ?? Carbon::now()->format('Hi');
+        $date = $request->input('date') ?? Carbon::today()->format('Ymd');
+        $time = $request->input('time') ?? Carbon::now()->format('Hi');
+        $route_id = $request->input('route_id');
 
         if (!preg_match('/^\d{8}$/', $date)) 
         {

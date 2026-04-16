@@ -4,10 +4,16 @@ meta {
   seq: 5
 }
 
-get {
-  url: {{api_url}}/trip/D09929195/shapes
-  body: none
+post {
+  url: {{api_url}}/trip/shapes
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "trip_id": "12345678"
+  }
 }
 
 settings {

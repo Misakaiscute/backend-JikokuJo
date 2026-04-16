@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use DirectoryIterator;
-use Illuminate\Http\Request;
 use App\Models\Stop;
 use App\Models\Route;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +22,7 @@ class SearchController extends Controller
     ];
 
 
-    private function getRouteTypeCategory(int $type): string
+    public function getRouteTypeCategory(int $type)
     {
         return match (true) 
         {
