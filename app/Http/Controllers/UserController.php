@@ -158,7 +158,7 @@ class UserController extends Controller
                 ->detach();
                 return response()->json([
                     'data'   => [
-                        'route_id'   => $route_id,
+                        'route'   => Route::find($route_id),
                         'new_status' => false
                     ],
                     'errors' => []
@@ -171,7 +171,7 @@ class UserController extends Controller
             ]);
             return response()->json([
                 'data'   => [
-                    'route_id'   => $route_id,
+                    'route'   => Route::find($route_id),
                     'new_status' => true
                 ],
                 'errors' => []

@@ -23,7 +23,6 @@ class SearchController extends Controller
             1100, 1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1113, 1114, 1200, 1300, 1301, 1302, 1303, 1304, 1305, 1306, 1307, 1400, 1401, 1402, 1600, 1601, 1602, 1603, 1604, 1605],
     ];
 
-
     private function getRouteTypeCategory(int $type): string
     {
         return match (true) 
@@ -62,15 +61,15 @@ class SearchController extends Controller
         });
 
         $routes = Route::select('id', 'short_name', 'color', 'type')
-                    ->get()
-                    ->map(function ($route) {
-                        return [
-                            'route_id'         => $route->id,
-                            'route_short_name' => $route->short_name,
-                            'type'             => $this->getRouteTypeCategory($route->type),
-                            'color'            => $route->color,
-                        ];
-                    });
+            ->get()
+            ->map(function ($route) {
+                return [
+                    'id' => $route->id,
+                    'short_name' => $route->short_name,
+                    'type' => $this->getRouteTypeCategory($route->type),
+                    'color' => $route->color,
+                ];
+            });
 
         if ($stops->isEmpty() && $routes->isEmpty()) 
         {
