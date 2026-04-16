@@ -33,6 +33,7 @@ Route::post('/user/register', [UserController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () 
 {
     Route::get('/user', [UserController::class, 'get']);
+    Route::post('/user/logout', [UserController::class, 'log_out']);
     Route::put('/user/update', [UserController::class, 'update']);
     //meglévő mezők bármelyikét beadhatod, ami ne változik kihagyhatod
     Route::delete('/user/delete', [UserController::class, 'destroy']);

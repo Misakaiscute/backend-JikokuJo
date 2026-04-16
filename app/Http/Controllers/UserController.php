@@ -47,7 +47,22 @@ class UserController extends Controller
 
     public function log_out(UserRequest $request)
     {
+        //Tokenes kérés (mobil)
+        if ($request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
 
+        // Web session logout
+        Auth::logout();
+
+        // Session kezelés
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'data'      => [],
+            'errors'    => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function get(UserRequest $request) {
