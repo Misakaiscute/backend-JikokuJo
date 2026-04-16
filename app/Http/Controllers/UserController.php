@@ -45,6 +45,11 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
+    public function log_out(UserRequest $request)
+    {
+
+    }
+
     public function get(UserRequest $request) {
         return response()->json([
             'data' => [
@@ -129,17 +134,28 @@ class UserController extends Controller
                 ->wherePivot('route_id', $route_id)
                 ->wherePivot('time', $time)
                 ->detach();
+                return response()->json([
+                    'data'   => [
+                        'route_id' => $route_id,
+                        'new_status' => false
+                    ],
+                    'errors' => []
+                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } 
         else 
         {
             $user->favourites()->attach($route_id, [
                 'time' => $time
             ]);
+            return response()->json([
+                'data'   => [
+                    'route_id' => $route_id,
+                    'new_status' => true
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        return response()->json([
-            'data'   => [],
-            'errors' => []
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        
     }
 
     public function favourites(UserRequest $request)
