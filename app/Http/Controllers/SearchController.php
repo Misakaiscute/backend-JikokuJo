@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
-    private array $routeTypes = 
+    private static array $routeTypes = 
     [
         'busz' => [3, 7, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716],
         'vonat' => [2, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 300],
@@ -22,17 +22,17 @@ class SearchController extends Controller
     ];
 
 
-    public function getRouteTypeCategory(int $type)
+    public static function getRouteTypeCategory(int $type)
     {
         return match (true) 
         {
-            in_array($type, $this->routeTypes['busz'] ?? []) => 1,
-            in_array($type, $this->routeTypes['villamos'] ?? []) => 2,
-            in_array($type, $this->routeTypes['metró'] ?? []) => 3,
-            in_array($type, $this->routeTypes['troli'] ?? []) => 4,
-            in_array($type, $this->routeTypes['vonat'] ?? []) => 5,
-            in_array($type, $this->routeTypes['hév'] ?? []) => 6,
-            in_array($type, $this->routeTypes['taxi'] ?? []) => 7,
+            in_array($type, self::$routeTypes['busz'] ?? []) => 1,
+            in_array($type, self::$routeTypes['villamos'] ?? []) => 2,
+            in_array($type, self::$routeTypes['metró'] ?? []) => 3,
+            in_array($type, self::$routeTypes['troli'] ?? []) => 4,
+            in_array($type, self::$routeTypes['vonat'] ?? []) => 5,
+            in_array($type, self::$routeTypes['hév'] ?? []) => 6,
+            in_array($type, self::$routeTypes['taxi'] ?? []) => 7,
             default => 8,
         };
     }

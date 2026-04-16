@@ -153,18 +153,33 @@ class UserController extends Controller
                    ->wherePivot('time', $time)
                    ->exists();
         if ($exists) 
-            {
+        {
+            $route = $user->favourites()
+                                    ->where('routes.id', $route_id)
+                                    ->get()
+                                    ->map(function ($route) {
+                                        return [
+                                            'id'         => $route->id,
+                                            'short_name' => $route->short_name,
+                                            'type'       => SearchController::getRouteTypeCategory($route->type),
+                                            'color'      => $route->color,
+                                        ];
+                                    })
+                                    ->first();
+
             $user->favourites()
                 ->wherePivot('route_id', $route_id)
                 ->wherePivot('time', $time)
                 ->detach();
-                return response()->json([
-                    'data'   => [
-                        'route'   => Route::find($route_id),
-                        'new_status' => false
-                    ],
-                    'errors' => []
-                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return response()->json([
+                'data'   => [
+                    'route' => $route,
+                    'new_status' => false
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            
         } 
         else 
         {
@@ -173,7 +188,18 @@ class UserController extends Controller
             ]);
             return response()->json([
                 'data'   => [
-                    'route'   => Route::find($route_id),
+                    'route' => $user->favourites()
+                                    ->where('routes.id', $route_id)
+                                    ->get()
+                                    ->map(function ($route) {
+                                        return [
+                                            'id'         => $route->id,
+                                            'short_name' => $route->short_name,
+                                            'type'       => SearchController::getRouteTypeCategory($route->type),
+                                            'color'      => $route->color,
+                                        ];
+                                    })
+                                    ->first(),
                     'new_status' => true
                 ],
                 'errors' => []
@@ -190,8 +216,14 @@ class UserController extends Controller
                         ->get()
                         ->map(function ($route) {
                             return [
-                                'route'    => $route,
-                                'time'     => $route->pivot->time,
+                                'route' => 
+                                [
+                                    'id'          => $route->id,
+                                    'short_name'  => $route->short_name,
+                                    'type'        => SearchController::getRouteTypeCategory($route->type),
+                                    'color'       => $route->color
+                                    ],
+                                'time'  => $route->pivot->time,
                             ];
                         });
 
