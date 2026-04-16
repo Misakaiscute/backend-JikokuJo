@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class UserController extends Controller
@@ -49,15 +50,20 @@ class UserController extends Controller
     public function log_out(UserRequest $request)
     {
         if ($user = $request->user()) {
+
+            // Token (API)
             $token = $user->currentAccessToken();
-    
             if ($token instanceof PersonalAccessToken) {
                 $token->delete();
             }
     
-            Auth::logout();
+            // Session (web)
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
         }
-    
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
