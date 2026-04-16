@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
 use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class UserController extends Controller
