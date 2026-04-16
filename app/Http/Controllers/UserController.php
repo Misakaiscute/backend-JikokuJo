@@ -54,7 +54,15 @@ class UserController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    
+    public function store(UserRequest $request)
+    {
+        $user = User::create($request->all());
+
+        return response()->json([
+            'data'   => ['user' => $user],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
 
     public function update(UserRequest $request)
     {
