@@ -89,7 +89,7 @@ services:
         condition: service_healthy
       app:
         condition: service_healthy
-    command: php /var/www/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+    command: php /var/www/artisan queue:work database --timeout=0 --tries=0 --sleep=1
     networks:
       - jikokujo
 

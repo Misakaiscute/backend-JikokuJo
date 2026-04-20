@@ -177,7 +177,18 @@ class VehiclePositionPoller
 
         try 
         {
-            $reverb = env('REVERB_SCHEMA') . "://" . env('REVERB_HOST') . ':' . env('REVERB_PORT');
+            $options = config('reverb.apps.apps.0.options');
+            $scheme = $options['scheme'];
+            $host = $options['host'];
+            $port = $options['port'];
+
+            $reverb = "{$scheme}://{$host}:{$port}";
+
+            Log::debug('REVERB ENV', [
+                'schema' => env('REVERB_SCHEMA'),
+                'host' => env('REVERB_HOST'),
+                'port' => env('REVERB_PORT'),
+            ]);
 
             $response = Http::timeout(8)
                 ->get("{$reverb}/apps/{$appId}/channels/{$this->channelName}");
