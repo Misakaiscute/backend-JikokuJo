@@ -16,7 +16,6 @@ RUN chown -R www-data:www-data /var/www/storage \
     && chmod -R 775 /var/www/storage 
 
 RUN composer install \
-    --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --prefer-dist
