@@ -45,12 +45,9 @@ class User extends Authenticatable
 
     public function favourites()
     {
-        return $this->belongsToMany(Trip::class, 'favourites', 'user_id', 'trip_id');
-    }
-
-    public function hasFavourited(Trip $trip)
-    {
-        return $this->favourites()->where('trip_id', $trip->id)->exists();
+        return $this->belongsToMany(Route::class, 'favourites')
+                ->using(Favourite::class)
+                ->withPivot('id', 'time');
     }
 
     protected function casts(): array

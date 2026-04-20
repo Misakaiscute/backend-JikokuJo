@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Route;
 use App\Models\Shape;
-use App\Models\Stop;
-use App\Models\StopTime;
 use App\Models\Trip;
+use App\Http\Requests\TripRequest;
+
 
 class ShapeController extends Controller
 {
-    public function getShapesByTripId(string $trip_id)
+    public function getShapesByTripId(TripRequest $request)
     {
+        $trip_id = $request->input('trip_id');
         $trip = Trip::select('shape_id')->find($trip_id);
 
         if (!$trip || !$trip->shape_id) 

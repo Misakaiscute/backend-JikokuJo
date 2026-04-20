@@ -3,20 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\SearchController;
 use App\Models\User;
-use App\Models\Trip;
+use App\Models\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use Carbon\Carbon;
+use Laravel\Sanctum\PersonalAccessToken;
 use Exception;
 
 class UserController extends Controller
 {
-    public function login(UserRequest $request, ?bool $rememberUser = false)
+    public function login(UserRequest $request)
     {
         $email = $request->input('email');
         $password = $request->input('password');
+        $rememberUser = $request->input('remember_user') ?? false;
 
         $user = User::where('email', $email)->first();
 
@@ -41,6 +44,32 @@ class UserController extends Controller
         
         return response()->json([
             'data'      => ['token' => $token->plainTextToken],
+            'errors'    => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function log_out(UserRequest $request)
+    {
+        if ($user = $request->user()) {
+
+            // Token (API)
+            $token = $user->currentAccessToken();
+            if ($token instanceof PersonalAccessToken) {
+                $token->delete();
+            }
+    
+            // Session (web)
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'data'      => [],
             'errors'    => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
@@ -105,39 +134,98 @@ class UserController extends Controller
 
     public function toggleFavourite(UserRequest $request)
     {
-        $trip_id = $request->trip_id;
+        $user = $request->user();
+        $route_id = $request->route_id;
+        $time = $request->time;
         try
         {
-            Trip::findOrFail($trip_id);
+            Route::findOrFail($route_id);
         }
         catch(Exception $e)
         {
             return response()->json([
             'data'   => [],
-            'errors' => ["Nincs trip ilyen id-vel."]
-        ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            'errors' => ["Nincs route ilyen id-vel."]
+            ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        $request->user()->favourites()->toggle($trip_id);
+        $exists = $user->favourites()
+                   ->wherePivot('route_id', $route_id)
+                   ->wherePivot('time', $time)
+                   ->exists();
+        if ($exists) 
+        {
+            $route = $user->favourites()
+                                    ->where('routes.id', $route_id)
+                                    ->get()
+                                    ->map(function ($route) {
+                                        return [
+                                            'id'         => $route->id,
+                                            'short_name' => $route->short_name,
+                                            'type'       => SearchController::getRouteTypeCategory($route->type),
+                                            'color'      => $route->color,
+                                        ];
+                                    })
+                                    ->first();
 
-        return response()->json([
-            'data'   => [],
-            'errors' => []
-        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $user->favourites()
+                ->wherePivot('route_id', $route_id)
+                ->wherePivot('time', $time)
+                ->detach();
+
+            return response()->json([
+                'data'   => [
+                    'route' => $route,
+                    'new_status' => false
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            
+        } 
+        else 
+        {
+            $user->favourites()->attach($route_id, [
+                'time' => $time
+            ]);
+            return response()->json([
+                'data'   => [
+                    'route' => $user->favourites()
+                                    ->where('routes.id', $route_id)
+                                    ->get()
+                                    ->map(function ($route) {
+                                        return [
+                                            'id'         => $route->id,
+                                            'short_name' => $route->short_name,
+                                            'type'       => SearchController::getRouteTypeCategory($route->type),
+                                            'color'      => $route->color,
+                                        ];
+                                    })
+                                    ->first(),
+                    'new_status' => true
+                ],
+                'errors' => []
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        
     }
 
     public function favourites(UserRequest $request)
     {
         $user = $request->user();
-        $favourites = $user->favourites;
-        if(!$favourites)
-        {
-            return response()->json([
-                'data'   => [
-                    'favourites' => []
-                ],
-                'errors' => []
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
+
+        $favourites = $user->favourites()
+                        ->get()
+                        ->map(function ($route) {
+                            return [
+                                'route' => 
+                                [
+                                    'id'          => $route->id,
+                                    'short_name'  => $route->short_name,
+                                    'type'        => SearchController::getRouteTypeCategory($route->type),
+                                    'color'       => $route->color
+                                    ],
+                                'time'  => $route->pivot->time,
+                            ];
+                        });
 
         return response()->json([
             'data'   => [
