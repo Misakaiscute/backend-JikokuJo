@@ -22,6 +22,8 @@ class VehiclePositionPoller
     public function __construct(string $tripId)
     {
         $this->tripId = $tripId;
+        // For display/cache purposes - includes "presence-" prefix
+        // For HTTP API calls to Reverb - use without prefix as Reverb adds it
         $this->channelName = "trip.{$tripId}";
     }
 
@@ -175,7 +177,15 @@ class VehiclePositionPoller
     
     private function getPresenceChannelMemberCount(): int
     {
-        $appId = env('REVERB_APP_ID', '806509');
+        $appId = config('reverb.apps.apps.0.app_id');
+        $key = config('reverb.apps.apps.0.key');
+        $secret = config('reverb.apps.apps.0.secret');
+
+        Log::debug('REVERB CONFIG', [
+            'appId' => $appId,
+            'key' => $key ? substr($key, 0, 5) . '...' : 'MISSING',
+            'secret' => $secret ? substr($secret, 0, 5) . '...' : 'MISSING',
+        ]);
 
         try 
         {
@@ -186,31 +196,101 @@ class VehiclePositionPoller
 
             $reverb = "{$scheme}://{$host}:{$port}";
 
-            Log::debug('REVERB ENV', [
-                'schema' => env('REVERB_SCHEMA'),
-                'host' => env('REVERB_HOST'),
-                'port' => env('REVERB_PORT'),
+            Log::debug('REVERB BASE URL', [
+                'url' => $reverb,
+                'scheme' => $scheme,
+                'host' => $host,
+                'port' => $port,
             ]);
 
-            $response = Http::timeout(8)
-                ->get("{$reverb}/apps/{$appId}/channels/{$this->channelName}");
+            $timestamp = time();
+            $path = "/apps/{$appId}/channels/{$this->channelName}";
+            $method = 'GET';
+
+            // Pusher API format: signature is computed from METHOD\nPATH\nQUERY_STRING
+            // where query string contains auth_key, auth_timestamp, auth_version, and info
+            $authVersion = '1.0';
+            $queryString = "auth_key={$key}&auth_timestamp={$timestamp}&auth_version={$authVersion}&info=subscription_count";
+            $stringToSign = "{$method}\n{$path}\n{$queryString}";
+            $signature = hash_hmac('sha256', $stringToSign, $secret);
+
+            Log::debug('REVERB SIGNATURE DEBUG', [
+                'method' => $method,
+                'path' => $path,
+                'queryString' => $queryString,
+                'stringToSign' => addslashes($stringToSign),
+                'signature' => $signature,
+                'timestamp' => $timestamp,
+            ]);
 
             /**@var Response $response*/
+            $response = Http::get("{$reverb}{$path}", [
+                'auth_key' => $key,
+                'auth_timestamp' => $timestamp,
+                'auth_version' => $authVersion,
+                'auth_signature' => $signature,
+                'info' => 'subscription_count',
+            ]);
 
+            Log::debug('REVERB REQUEST DETAILS', [
+                'method' => $method,
+                'url' => "{$reverb}{$path}",
+                'query_params' => [
+                    'auth_key' => $key ? substr($key, 0, 5) . '...' : 'MISSING',
+                    'auth_timestamp' => $timestamp,
+                    'auth_version' => $authVersion,
+                    'auth_signature' => $signature,
+                    'info' => 'subscription_count',
+                ],
+            ]);
+
+            Log::debug('REVERB RESPONSE', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'json' => $response->json(),
+            ]);
             if ($response->successful()) 
             {
                 $data = $response->json();
-                $userCount = (int) ($data['user_count'] ?? $data['subscription_count'] ?? 0);
                 
-                Log::debug("Reverb stats | {$this->channelName} | user_count: {$userCount}");
+                Log::debug('REVERB RESPONSE DATA', [
+                    'all_keys' => array_keys($data),
+                    'data' => $data,
+                ]);
+                
+                // Try subscription_count first (returned by info=subscription_count param)
+                // Then occupied boolean, then other alternatives
+                $userCount = (int) (
+                    $data['subscription_count'] ?? 
+                    ($data['occupied'] ? 1 : 0) ?? 
+                    $data['user_count'] ?? 
+                    $data['subscriptions'] ?? 
+                    $data['subscribers'] ?? 
+                    $data['members'] ?? 
+                    0
+                );
+                
+                Log::debug("Reverb stats | {$this->channelName} | subscription_count: {$userCount}");
                 
                 if ($userCount > 0) {
                     $this->consecutiveStatsFailures = 0;
                     return $userCount;
                 }
+                
+                // If Reverb says 0 but we have recent cache activity, trust the cache
+                // This handles the case where Reverb's HTTP API isn't properly tracking presence
+                $cacheKey = "channel_activity:{$this->channelName}";
+                $lastActivity = Cache::get($cacheKey, 0);
+                
+                if (time() - $lastActivity < 90) 
+                {
+                    Log::debug("Reverb returned 0 but cache shows recent activity → trusting cache");
+                    $this->consecutiveStatsFailures = 0;
+                    return 1;
+                }
             } else 
             {
-                Log::debug("Reverb stats status: " . $response->status() . " (várható 401, ha nincs auth)");
+                Log::debug("Reverb stats status: " . $response->status() . " (connection issue or auth error)");
             }
         } catch (\Exception $e) 
         {
