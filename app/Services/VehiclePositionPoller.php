@@ -67,6 +67,8 @@ class VehiclePositionPoller
             Log::error("BKK_API_KEY nincs beállítva!");
             return;
         }
+        /**@var Response $response*/
+
 
         $response = Http::withOptions([
             'verify'          => false,
@@ -192,6 +194,8 @@ class VehiclePositionPoller
 
             $response = Http::timeout(8)
                 ->get("{$reverb}/apps/{$appId}/channels/{$this->channelName}");
+
+            /**@var Response $response*/
 
             if ($response->successful()) 
             {
