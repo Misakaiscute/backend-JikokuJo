@@ -9,9 +9,5 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('trip.{tripId}', function ($user, $tripId) {
-    logger([
-    'user_id' => $user?->id,
-    'tripId' => $tripId
-    ]);
     return (new TripPositionChannel())->join($user, $tripId);
 });

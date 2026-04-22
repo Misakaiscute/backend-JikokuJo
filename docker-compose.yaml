@@ -17,6 +17,12 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      REVERB_APP_ID: ${REVERB_APP_ID}
+      REVERB_APP_KEY: ${REVERB_APP_KEY}
+      REVERB_APP_SECRET: ${REVERB_APP_SECRET}
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
     volumes:
       - app-volume:/var/www
     depends_on:
@@ -62,6 +68,10 @@ services:
       - jikokujo
 
   reverb:
+    environment:
+      REVERB_APP_ID: ${REVERB_APP_ID}
+      REVERB_APP_KEY: ${REVERB_APP_KEY}
+      REVERB_APP_SECRET: ${REVERB_APP_SECRET}
     build:
       context: ./
       dockerfile: docker-compose/laravel/dependants/Dockerfile
@@ -83,13 +93,21 @@ services:
       dockerfile: docker-compose/laravel/dependants/Dockerfile
     image: local/jikokujo-job-queue
     container_name: job-queue
-    restart: unless-stopped
+    restart: always
     depends_on:
       database:
         condition: service_healthy
       app:
         condition: service_healthy
-    command: php /var/www/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+    command: >
+      sh -c "
+        until php artisan migrate:status > /dev/null 2>&1;
+        do
+          echo 'Waiting for DB...';
+          sleep 2;
+        done;
+        php artisan queue:work database --timeout=0 --tries=0 --sleep=1
+      "
     networks:
       - jikokujo
 

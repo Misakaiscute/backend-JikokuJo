@@ -11,6 +11,9 @@ class PollVehiclePosition implements ShouldQueue
 {
     use Queueable;
 
+    public $timeout = 0;
+    public $tries = 0;
+
     public function __construct(private string $tripId)
     {
     }

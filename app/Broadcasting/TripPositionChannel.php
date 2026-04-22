@@ -14,6 +14,7 @@ class TripPositionChannel
         }
 
         // Mark channel as active when someone joins
+        // Use same format as VehiclePositionPoller: "trip.{tripId}" without presence- prefix
         $cacheKey = "channel_activity:trip.{$tripId}";
         Cache::put($cacheKey, time(), 60);
 
