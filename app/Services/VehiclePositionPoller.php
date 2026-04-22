@@ -24,7 +24,7 @@ class VehiclePositionPoller
         $this->tripId = $tripId;
         // For display/cache purposes - includes "presence-" prefix
         // For HTTP API calls to Reverb - use without prefix as Reverb adds it
-        $this->channelName = "trip.{$tripId}";
+        $this->channelName = "presence-trip.{$tripId}";
     }
 
     public function poll(): void
@@ -181,34 +181,18 @@ class VehiclePositionPoller
         $key = config('reverb.apps.apps.0.key');
         $secret = config('reverb.apps.apps.0.secret');
 
-        Log::debug('REVERB CONFIG', [
-            'appId' => $appId,
-            'key' => $key ? substr($key, 0, 5) . '...' : 'MISSING',
-            'secret' => $secret ? substr($secret, 0, 5) . '...' : 'MISSING',
-        ]);
-
         try 
         {
             $options = config('reverb.apps.apps.0.options');
             $scheme = $options['scheme'];
             $host = $options['host'];
             $port = $options['port'];
-
             $reverb = "{$scheme}://{$host}:{$port}";
-
-            Log::debug('REVERB BASE URL', [
-                'url' => $reverb,
-                'scheme' => $scheme,
-                'host' => $host,
-                'port' => $port,
-            ]);
 
             $timestamp = time();
             $path = "/apps/{$appId}/channels/{$this->channelName}";
             $method = 'GET';
 
-            // Pusher API format: signature is computed from METHOD\nPATH\nQUERY_STRING
-            // where query string contains auth_key, auth_timestamp, auth_version, and info
             $authVersion = '1.0';
             $queryString = "auth_key={$key}&auth_timestamp={$timestamp}&auth_version={$authVersion}&info=subscription_count";
             $stringToSign = "{$method}\n{$path}\n{$queryString}";
