@@ -88,16 +88,37 @@ services:
       - jikokujo
 
   poller:
-    build: 
-    command: php artisan poller:run
+    build:
+      context: ./
+      dockerfile: docker-compose/laravel/dependants/Dockerfile
+    image: local/jikokujo-poller
+    container_name: poller
+    restart: unless-stopped
+    command: php /var/www/artisan poller:run
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BKK_API_KEY: ${BKK_API_KEY}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - app-volume:/var/www
     depends_on:
       - redis
-    restart: always
+      - app
     networks:
       - jikokujo
 
   redis:
     image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - jikokujo
 
 networks:
   jikokujo:

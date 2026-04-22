@@ -6,6 +6,7 @@ use App\Events\VehiclePositionUpdated;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Client\Response;
 use TransitRealtime\FeedMessage;
 
@@ -32,8 +33,10 @@ class VehiclePositionPoller
             $this->iterationCount++;
             $watchersCount = $this->getPresenceChannelMemberCount();
         
-            if ($watchersCount = 0) 
+            if ($watchersCount == 0) 
             {
+                Log::info("No watchers for trip {$this->tripId}, stopping poller and removing from Redis");
+                Redis::srem('active_channels', $this->tripId);
                 break;
             }
             try 
@@ -146,6 +149,68 @@ class VehiclePositionPoller
     private function getReverbAppId(): string
     {
         return env('REVERB_APP_ID', '271825');
+    }
+
+    private function fetchAndBroadcastPosition(): void
+    {
+        $apiKey = env('BKK_API_KEY');
+
+        try {
+            /**
+             * @var Response $response
+             */
+            $response = Http::withOptions([
+                'verify'          => false,
+                'verify_host'     => false,
+                'verify_peer'     => false,
+                'allow_redirects' => true,
+            ])
+            ->timeout(20)
+            ->connectTimeout(10)
+            ->get("https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb", [
+                'key' => $apiKey
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning("BKK API hiba | Trip: {$this->tripId} | Status: {$response->status()}");
+                return;
+            }
+
+            $feed = new FeedMessage();
+            $feed->mergeFromString($response->body());
+
+            foreach ($feed->getEntity() as $entity) {
+                $vehiclePos = $entity->getVehicle();
+
+                if ($vehiclePos && $vehiclePos->getTrip() && $vehiclePos->getTrip()->getTripId() === $this->tripId) {
+                    $position = $vehiclePos->getPosition();
+            
+                    if ($position) {
+                        $lat = (float) $position->getLatitude();
+                        $lon = (float) $position->getLongitude();
+                        $bearingRaw = $position->getBearing();
+                        $bearing = is_numeric($bearingRaw) ? (float) $bearingRaw : null;
+
+                        broadcast(new VehiclePositionUpdated(
+                            tripId:    $this->tripId,
+                            lat:       $lat,
+                            lon:       $lon,
+                            speed:     null,
+                            bearing:   $bearing,
+                            timestamp: now()->toIso8601String(),
+                            message:   null
+                        ));
+
+                        Log::debug("Trip {$this->tripId}: lat={$lat}, lon={$lon}, bearing=" . ($bearing ?? 'null'));
+                    } else {
+                        Log::warning("Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról");
+                    }
+                    return;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("Hiba a BKK API lekérdezésekor: " . $e->getMessage());
+        }
     }
 
     public function setPollInterval(int $seconds): self
