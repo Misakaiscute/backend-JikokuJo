@@ -91,16 +91,16 @@ class PollerRun extends Command
                     } 
                     else 
                     {
-                        Log::warning("Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról");
+                        Log::warning("Trip {$vehiclePos->getTrip()->getTripId()} megtalálva de nincs adat a pozíciójáról");
 
                         broadcast(new VehiclePositionUpdated(
-                            tripId:    $this->tripId,
+                            tripId:    $this->$vehiclePos->getTrip()->getTripId(),
                             lat:       0.0,
                             lon:       0.0,
                             speed:     null,
                             bearing:   null,                    // ← itt biztosan null
                             timestamp: now()->toIso8601String(),
-                            message:   "Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról"
+                            message:   "Trip {$this->$vehiclePos->getTrip()->getTripId()} megtalálva de nincs adat a pozíciójáról"
                         ));
                     }
                     break;

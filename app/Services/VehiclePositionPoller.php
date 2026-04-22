@@ -47,120 +47,7 @@ class VehiclePositionPoller
         }
     }
 
-    private function fetchAndBroadcastPosition()
-    {
-        $apiKey = env('BKK_API_KEY');
-
-        if (empty($apiKey)) 
-        {
-            Log::error("BKK_API_KEY nincs beállítva!");
-            return;
-        }
-        /**@var Response $response*/
-
-
-        $response = Http::withOptions([
-            'verify'          => false,
-            'verify_host'     => false,
-            'verify_peer'     => false,
-            'allow_redirects' => true,
-        ])
-        ->timeout(20)
-        ->connectTimeout(10)
-        ->get("https://go.bkk.hu/api/query/v1/ws/gtfs-rt/full/VehiclePositions.pb", [
-            'key' => $apiKey
-        ]);
-
-        if (!$response->successful()) 
-        {
-            Log::warning("BKK API hiba | Status: {$response->status()} | Trip: {$this->tripId} | Body: " . substr($response->body(), 0, 500));
-            return;
-        }
-
-        $feed = new FeedMessage();
-        $feed->mergeFromString($response->body());
-
-        $entityCount = count($feed->getEntity());
-        Log::info("BKK API visszaküldött {$entityCount} entitást erre a tripre {$this->tripId}");
-
-        //teszteléshez aktív tripek keresése
-        // if ($entityCount > 0) {
-        //     $sampleTrips = [];
-        //     $entities = $feed->getEntity();
-        //     $count = min(5, count($entities));
-        //     for ($i = 0; $i < $count; $i++) {
-        //         $entity = $entities[$i];
-        //         $vehiclePos = $entity->getVehicle();
-        //         if ($vehiclePos && $vehiclePos->getTrip()) {
-        //             $sampleTrips[] = $vehiclePos->getTrip()->getTripId();
-        //         }
-        //     }
-        //     Log::info("Aktív trip id-k: " . implode(', ', array_unique($sampleTrips)));
-        // }
-
-        $found = false;
-        foreach ($feed->getEntity() as $entity) 
-        {
-            $vehiclePos = $entity->getVehicle();
-
-            if ($vehiclePos && $vehiclePos->getTrip() && $vehiclePos->getTrip()->getTripId() === $this->tripId) 
-            {
-                $found = true;
-                $position = $vehiclePos->getPosition();
-            
-                if ($position) 
-                {
-                    $lat = (float) $position->getLatitude();
-                    $lon = (float) $position->getLongitude();
-                    $bearingRaw = $position->getBearing();
-                    $bearing = is_numeric($bearingRaw) ? (float) $bearingRaw : null;
-
-                    broadcast(new VehiclePositionUpdated(
-                        tripId:    $this->tripId,
-                        lat:       $lat,
-                        lon:       $lon,
-                        speed:     null,
-                        bearing:   $bearing,
-                        timestamp: now()->toIso8601String(),
-                        message:   null
-                    ));
-
-                    Log::info("Streamelés a következő tripre: {$this->tripId}: lat={$lat}, lon={$lon}, bearing=" . ($bearing ?? 'null'));
-                } 
-                else 
-                {
-                    Log::warning("Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról");
-
-                    broadcast(new VehiclePositionUpdated(
-                        tripId:    $this->tripId,
-                        lat:       0.0,
-                        lon:       0.0,
-                        speed:     null,
-                        bearing:   null,                    // ← itt biztosan null
-                        timestamp: now()->toIso8601String(),
-                        message:   "Trip {$this->tripId} megtalálva de nincs adat a pozíciójáról"
-                    ));
-                }
-                break;
-            }
-        }
-
-        // Ha a trip egyáltalán nem található a feed-ben
-        if (!$found) 
-        {
-            Log::debug("Trip {$this->tripId} nem aktív jelenleg");
-
-            broadcast(new VehiclePositionUpdated(
-                tripId:    $this->tripId,
-                lat:       0.0,
-                lon:       0.0,
-                speed:     null,
-                bearing:   null,                    // ← itt is biztosan null
-                timestamp: now()->toIso8601String(),
-                message:   "Trip {$this->tripId} nem aktív jelenleg"
-            ));
-        }
-    }
+    
     
     private function getPresenceChannelMemberCount(): int
     {
@@ -193,7 +80,7 @@ class VehiclePositionPoller
                 'auth_signature' => $signature,
                 'info' => 'subscription_count',
             ]);
-            
+
             if ($response->successful()) 
             {
                 $data = $response->json();
