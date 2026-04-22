@@ -27,7 +27,7 @@ class PollVehiclePosition implements ShouldQueue
             $poller->poll();
             
             Log::info("Trip lekérdezése befejeződött a háttérben: {$this->tripId}");
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             Log::error("PollVehiclePosition hiba {$this->tripId}: " . $e->getMessage(), [
                 'exception' => $e,
                 'trace' => $e->getTraceAsString()

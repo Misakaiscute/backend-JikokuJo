@@ -87,29 +87,17 @@ services:
     networks:
       - jikokujo
 
-  job-queue:
-    build:
-      context: ./
-      dockerfile: docker-compose/laravel/dependants/Dockerfile
-    image: local/jikokujo-job-queue
-    container_name: job-queue
-    restart: always
+  poller:
+    build: 
+    command: php artisan poller:run
     depends_on:
-      database:
-        condition: service_healthy
-      app:
-        condition: service_healthy
-    command: >
-      sh -c "
-        until php artisan migrate:status > /dev/null 2>&1;
-        do
-          echo 'Waiting for DB...';
-          sleep 2;
-        done;
-        php artisan queue:work database --timeout=0 --tries=0 --sleep=1
-      "
+      - redis
+    restart: always
     networks:
       - jikokujo
+
+  redis:
+    image: redis:alpine
 
 networks:
   jikokujo:

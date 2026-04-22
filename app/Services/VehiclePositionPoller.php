@@ -14,10 +14,8 @@ class VehiclePositionPoller
     private string $tripId;
     private string $channelName;
     private int $pollInterval = 5; //BKK api endpoint pollolása mpben
-    private int $statisticsCheckInterval = 8; //ennyi ciklus után van user watch count check
     private int $iterationCount = 0;
     private int $consecutiveStatsFailures = 0;
-    private int $maxConsecutiveStatsFailures = 4; //stop csak ha 3x egymás után nem érhető el
 
     public function __construct(string $tripId)
     {
@@ -29,28 +27,17 @@ class VehiclePositionPoller
 
     public function poll(): void
     {
-        while (true) {
+        while (true) 
+        {
             $this->iterationCount++;
-
-            if ($this->iterationCount % $this->statisticsCheckInterval === 0) {
-                $watchersCount = $this->getPresenceChannelMemberCount();
-            
-                if ($watchersCount > 0) {
-                    $this->consecutiveStatsFailures = 0;
-                    Log::info("{$watchersCount} néző van a tripen {$this->tripId} → polling folytatódik");
-                } else {
-                    $this->consecutiveStatsFailures++;
-            
-                    Log::debug("Nincs néző ({$this->consecutiveStatsFailures}/{$this->maxConsecutiveStatsFailures})");
-            
-                    if ($this->consecutiveStatsFailures >= $this->maxConsecutiveStatsFailures) {
-                        Log::info("Nincs aktív néző a {$this->tripId} tripen. Polling leállítva.");
-                        break;
-                    }
-                }
+            $watchersCount = $this->getPresenceChannelMemberCount();
+        
+            if ($watchersCount = 0) 
+            {
+                break;
             }
-
-            try {
+            try 
+            {
                 $this->fetchAndBroadcastPosition();
             } catch (\Exception $e) {
                 Log::error("Hiba a trip pozíciójának lekérésekor {$this->tripId}: " . $e->getMessage());
@@ -198,15 +185,6 @@ class VehiclePositionPoller
             $stringToSign = "{$method}\n{$path}\n{$queryString}";
             $signature = hash_hmac('sha256', $stringToSign, $secret);
 
-            Log::debug('REVERB SIGNATURE DEBUG', [
-                'method' => $method,
-                'path' => $path,
-                'queryString' => $queryString,
-                'stringToSign' => addslashes($stringToSign),
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            ]);
-
             /**@var Response $response*/
             $response = Http::get("{$reverb}{$path}", [
                 'auth_key' => $key,
@@ -215,24 +193,7 @@ class VehiclePositionPoller
                 'auth_signature' => $signature,
                 'info' => 'subscription_count',
             ]);
-
-            Log::debug('REVERB REQUEST DETAILS', [
-                'method' => $method,
-                'url' => "{$reverb}{$path}",
-                'query_params' => [
-                    'auth_key' => $key ? substr($key, 0, 5) . '...' : 'MISSING',
-                    'auth_timestamp' => $timestamp,
-                    'auth_version' => $authVersion,
-                    'auth_signature' => $signature,
-                    'info' => 'subscription_count',
-                ],
-            ]);
-
-            Log::debug('REVERB RESPONSE', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'json' => $response->json(),
-            ]);
+            
             if ($response->successful()) 
             {
                 $data = $response->json();
@@ -303,12 +264,6 @@ class VehiclePositionPoller
     public function setPollInterval(int $seconds): self
     {
         $this->pollInterval = $seconds;
-        return $this;
-    }
-
-    public function setStatisticsCheckInterval(int $iterations): self
-    {
-        $this->statisticsCheckInterval = $iterations;
         return $this;
     }
 }
