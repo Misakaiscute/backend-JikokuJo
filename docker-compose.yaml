@@ -6,12 +6,6 @@ services:
     image: local/jikokujo
     container_name: backend
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "php", "artisan", "migrate:status"]
-      interval: 1m
-      timeout: 30s
-      retries: 10
-      start_period: 3m
     environment:
       DB_HOST: ${DB_HOST}
       DB_DATABASE: ${DB_DATABASE}
@@ -82,7 +76,7 @@ services:
       database:
         condition: service_healthy
       app:
-        condition: service_healthy
+        condition: service_started
     command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT}
     networks:
       - jikokujo

@@ -25,7 +25,7 @@ class PollerRun extends Command
                 
                 if (empty($trip_ids)) {
                     // Silently wait if no active channels
-                    sleep(5);
+                    sleep(3);
                     continue;
                 }
                 

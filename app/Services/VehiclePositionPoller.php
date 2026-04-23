@@ -191,15 +191,15 @@ class VehiclePositionPoller
                         $bearingRaw = $position->getBearing();
                         $bearing = is_numeric($bearingRaw) ? (float) $bearingRaw : null;
 
-                        broadcast(new VehiclePositionUpdated(
-                            tripId:    $this->tripId,
-                            lat:       $lat,
-                            lon:       $lon,
-                            speed:     null,
-                            bearing:   $bearing,
-                            timestamp: now()->toIso8601String(),
-                            message:   null
-                        ));
+                        // broadcast(new VehiclePositionUpdated(
+                        //     tripId:    $this->tripId,
+                        //     lat:       $lat,
+                        //     lon:       $lon,
+                        //     speed:     null,
+                        //     bearing:   $bearing,
+                        //     timestamp: now()->toIso8601String(),
+                        //     message:   null
+                        // ));
 
                         Log::debug("Trip {$this->tripId}: lat={$lat}, lon={$lon}, bearing=" . ($bearing ?? 'null'));
                     } else {
