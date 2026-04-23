@@ -32,7 +32,6 @@ class VehiclePositionUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        \Log::info('Broadcasting VehiclePositionUpdated');
         return [
             new PresenceChannel("trip.{$this->tripId}")
         ];

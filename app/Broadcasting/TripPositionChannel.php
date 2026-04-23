@@ -11,32 +11,19 @@ class TripPositionChannel
 {
     public function join(?User $user, string $tripId): array|bool
     {
-        if (!$tripId) {
+        if (! $tripId) {
             return false;
         }
 
-        // Mark channel as active when someone joins
-        $cacheKey = "channel_activity:presence-trip.{$tripId}";
-        Cache::put($cacheKey, time(), 90);
-        
-        // Add to Redis set of active channels for the poller
+        $channelName = "presence-trip.{$tripId}";
+        $activityKey = "channel_activity:{$channelName}";
+
+        Redis::setex($activityKey, 90, (string) time());
         Redis::sadd('active_channels', $tripId);
-        
-        Log::info("User joined trip channel: {$tripId}");
 
         return [
             'id' => $user?->id ?? uniqid('guest_', true),
             'name' => $user?->email ?? 'guest',
         ];
-    }
-    
-    public function leave(?User $user, string $tripId): void
-    {
-        if (!$tripId) {
-            return;
-        }
-        
-        Log::info("User left trip channel: {$tripId}");
-        // Note: Redis cleanup is handled by the poller when it checks member count
     }
 }

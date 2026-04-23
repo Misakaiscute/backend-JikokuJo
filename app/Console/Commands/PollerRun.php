@@ -17,7 +17,6 @@ class PollerRun extends Command
     public function handle()
     {
         $this->info("Poller started...");
-        Log::info("BKK Poller started - polling active channels every 5 seconds");
         
         while (true) {
             try {
@@ -31,14 +30,14 @@ class PollerRun extends Command
                 
                 // Check for inactive channels every 3 cycles (15 seconds) to avoid excessive API calls
                 $this->cleanupCounter++;
-                if ($this->cleanupCounter >= 3) {
+                if ($this->cleanupCounter >= 6) {
                     $this->cleanupInactiveChannels($trip_ids);
                     $this->cleanupCounter = 0;
                 }
                 
                 $this->info("Polling " . count($trip_ids) . " active trip(s)");
                 $this->broadcastBkkData($trip_ids);
-                sleep(5);
+                sleep(3);
             } catch (\Exception $e) {
                 Log::error("Poller error: " . $e->getMessage(), [
                     'exception' => $e,
@@ -61,7 +60,7 @@ class PollerRun extends Command
         $appId = config('reverb.apps.apps.0.app_id');
         $key = config('reverb.apps.apps.0.key');
         $secret = config('reverb.apps.apps.0.secret');
-        
+
         try {
             $options = config('reverb.apps.apps.0.options');
             $scheme = $options['scheme'];
@@ -69,12 +68,18 @@ class PollerRun extends Command
             $port = $options['port'];
             $reverb = "{$scheme}://{$host}:{$port}";
 
+            $now = time();
+            $graceSeconds = 90;
+
             foreach ($trip_ids as $tripId) {
                 $channelName = "presence-trip.{$tripId}";
-                $timestamp = time();
+                $activityKey = "channel_activity:{$channelName}";
+
+                $timestamp = $now;
                 $path = "/apps/{$appId}/channels/{$channelName}";
                 $method = 'GET';
                 $authVersion = '1.0';
+
                 $queryString = "auth_key={$key}&auth_timestamp={$timestamp}&auth_version={$authVersion}&info=subscription_count";
                 $stringToSign = "{$method}\n{$path}\n{$queryString}";
                 $signature = hash_hmac('sha256', $stringToSign, $secret);
@@ -87,14 +92,23 @@ class PollerRun extends Command
                     'info' => 'subscription_count',
                 ]);
 
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $count = (int) ($data['subscription_count'] ?? 0);
-                    
-                    if ($count === 0) {
-                        Log::info("Trip {$tripId} has 0 watchers - removing from active channels");
-                        Redis::srem('active_channels', $tripId);
-                    }
+                if (! $response->successful()) {
+                    continue;
+                }
+
+                $data = $response->json();
+                $count = (int) ($data['subscription_count'] ?? 0);
+
+                if ($count > 0) {
+                    // Refresh last-seen activity in Redis
+                    Redis::setex($activityKey, $graceSeconds, (string) $now);
+                    continue;
+                }
+
+                $lastSeen = Redis::get($activityKey);
+
+                if ($lastSeen === null) {
+                    Redis::srem('active_channels', $tripId);
                 }
             }
         } catch (\Exception $e) {
@@ -155,12 +169,9 @@ class PollerRun extends Command
                             message:   null
                         ));
 
-                        Log::info("Streamelés a következő tripre: {$vehiclePos->getTrip()->getTripId()}: lat={$lat}, lon={$lon}, bearing=" . ($bearing ?? 'null'));
                     } 
                     else 
                     {
-                        Log::warning("Trip {$vehiclePos->getTrip()->getTripId()} megtalálva de nincs adat a pozíciójáról");
-
                         broadcast(new VehiclePositionUpdated(
                             tripId:    $vehiclePos->getTrip()->getTripId(),
                             lat:       0.0,
@@ -168,10 +179,9 @@ class PollerRun extends Command
                             speed:     null,
                             bearing:   null,
                             timestamp: now()->toIso8601String(),
-                            message:   "Trip {$vehiclePos->getTrip()->getTripId()} megtalálva de nincs adat a pozíciójáról"
+                            message:   "Nincs pozíció"
                         ));
                     }
-                    break;
                 }
                 
             }

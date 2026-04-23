@@ -6,11 +6,6 @@ use App\Http\Controllers\ShapeController;
 use App\Http\Controllers\StopController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ChannelActivityController;
-//
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Broadcast;
 
 //menetrendkereső
 
@@ -52,38 +47,5 @@ Route::middleware('auth:sanctum')->group(function ()
     //hozzáadja vagy kiveszi a routeot a kedvencek közül, adatok: route_id, time (HHMM)
     Route::get('/user/favourites', [UserController::class, 'favourites']);
     //favouritek listázása
-    Route::post('/channel-activity', [ChannelActivityController::class, 'ping']);
-});
-
-//elkezdi a folyamatos streaelést a létrehozott csatornán, autoatikusan leáll ha senki nincs a channelben
-//a csatorna neve mindig "trip.{trip_id}" 
-
-
-Route::post('/broadcasting/auth-debug', function (Request $request) {
-    Log::info('AUTH-DEBUG REQUEST', [
-        'all' => $request->all(),
-        'cookies' => $request->cookies->all(),
-        'user' => $request->user()?->id,
-        'auth_check' => auth()->check(),
-        'header_x_xsrf_token' => $request->header('X-XSRF-TOKEN'),
-        'header_x_requested_with' => $request->header('X-Requested-With'),
-    ]);
-
-    try {
-        return Broadcast::auth($request);
-    } catch (\Throwable $e) {
-        Log::error('AUTH-DEBUG EXCEPTION', [
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString(),
-        ]);
-
-        return response()->json([
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ], 500);
-    }
-})->middleware(['api', 'auth:sanctum']);
+}); 
 
