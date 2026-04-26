@@ -29,9 +29,13 @@ class UserController extends Controller
                 'errors' => ['Hibás email cím vagy jelszó.'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        //Set the session cookie for browsers
-        Auth::login($user);
-        $request->session()->regenerate();
+        try {
+            //Set the session cookie for browsers
+            Auth::login($user);
+            $request->session()->regenerate();
+        } catch (\Exception $e) {
+            // session not available (mobile client) — intentionally ignored
+        }
 
         //Create the token for mobile devices
         $user->tokens()->delete();

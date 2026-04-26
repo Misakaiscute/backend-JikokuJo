@@ -20,9 +20,8 @@ return [
         'http://localhost:5173',
         'http://localhost:8080',
         'http://localhost:4200',
+	'https://jikokujo.horchy.hu:443'
     ],
-
-    // 'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
 
     'allowed_origins_patterns' => [],
 
