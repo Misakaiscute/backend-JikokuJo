@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function shouldRun(): bool
     {
-        // Csak teszt környezetben fusson le
         return app()->environment('testing') || config('app.env') === 'local_testing';
     }
+
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -37,7 +37,7 @@ return new class extends Migration
         });
 
         Schema::create('trips', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->string('id');
             $table->string('route_id');
             $table->string('service_id');
             $table->string('trip_headsign')->nullable();
@@ -46,6 +46,7 @@ return new class extends Migration
             $table->string('shape_id')->nullable();
             $table->integer('wheelchair_accessible')->default(0);
             $table->integer('bikes_allowed')->default(0);
+            $table->primary(['id', 'service_id']);
         });
 
         Schema::create('stops', function (Blueprint $table) {
@@ -93,8 +94,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('route_id');
-            $table->string(('time'));
-            $table->unique('user_id');
+            $table->string('time')->default('');
+            $table->unique(['user_id', 'route_id', 'time']);
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });
     }
 

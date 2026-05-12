@@ -1,19 +1,19 @@
 meta {
   name: getTripsByRouteId
   type: http
-  seq: 4
+  seq: 3
 }
 
 post {
-  url: {{api_url}}/route/time
+  url: {{api_url}}/route/trip
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "date": "20260416",
-    "time": "1900",
+    "date": "20260425",
+    "time": "2200",
     "route_id": "0050"
   }
 }

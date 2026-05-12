@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Stop;
 use App\Models\Route;
-use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
@@ -40,31 +39,29 @@ class SearchController extends Controller
     public function queryables()
     {
         $stops = Stop::query()
-        ->select(
-            'name',
-            DB::raw("GROUP_CONCAT(id ORDER BY id ASC SEPARATOR ',') AS temp_ids")
-        )
-        ->groupBy('name')
-        ->get()
-        ->map(function ($stop) {
-            $ids = [];
-            if ($stop->temp_ids !== null && $stop->temp_ids !== '') {
-                $ids = explode(',', $stop->temp_ids);
-                $ids = array_map('trim', $ids);
-                $ids = array_filter($ids, fn($v) => $v !== '');
-            }
-            return [
-                'name' => $stop->name,
-                'ids'  => $ids,
-            ];
-        });
+            ->select('id', 'name')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('name')
+            ->map(function ($group, $name) {
+                return [
+                    'name' => $name,
+                    'ids'  => $group->pluck('id')
+                        ->map(fn ($id) => (string) $id)
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->values();
 
         $routes = Route::select('id', 'short_name', 'color', 'type')
             ->get()
             ->map(function ($route) {
                 return [
                     'id' => $route->id,
+                    'route_id' => $route->id,
                     'short_name' => $route->short_name,
+                    'route_short_name' => $route->short_name,
                     'type' => $this->getRouteTypeCategory($route->type),
                     'color' => $route->color,
                 ];

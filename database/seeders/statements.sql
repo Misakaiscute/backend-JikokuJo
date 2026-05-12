@@ -120,4 +120,30 @@ CREATE TABLE IF NOT EXISTS `favourites` (
   `time` VARCHAR(255) NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
   FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `device_tokens` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `token` VARCHAR(512) NOT NULL,
+  `platform` VARCHAR(255) NOT NULL DEFAULT 'android',
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  UNIQUE KEY `device_tokens_token_unique` (`token`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `sent_route_alerts` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `route_id` VARCHAR(255) NOT NULL,
+  `trip_id` VARCHAR(255) DEFAULT NULL,
+  `alert_type` VARCHAR(255) NOT NULL,
+  `alert_key` VARCHAR(512) NOT NULL,
+  `sent_at` TIMESTAMP NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  UNIQUE KEY `sent_route_alerts_alert_key_unique` (`alert_key`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`route_id`) REFERENCES `routes`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

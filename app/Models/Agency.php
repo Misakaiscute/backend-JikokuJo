@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property string $id
@@ -26,6 +27,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Agency extends Model
 {
+    use HasFactory;
+
     public $incrementing = false;
     public $timestamps = false;
     protected $keyType = 'string';

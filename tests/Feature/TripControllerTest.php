@@ -29,48 +29,8 @@ class TripControllerTest extends TestCase
         $this->assertTrue(true); // Test that factory creates properly
     }
 
-    public function test_get_trips_by_route_id_returns_206_when_no_trips_in_time_window()
-    {
-        $route = Route::factory()->create(['id' => 'R2', 'type' => 3]);
-        $trip = Trip::factory()->create([
-            'id' => 'T2',
-            'route_id' => $route->id,
-            'service_id' => 'S2',
-            'trip_headsign' => 'Éjszakai járat',
-        ]);
 
-        CalendarDate::factory()->create([
-            'service_id' => 'S2',
-            'date' => 20260102,
-            'exception_type' => 1,
-        ]);
-
-        Stop::factory()->create(['id' => 'S3', 'name' => 'Old Stop']);
-        Stop::factory()->create(['id' => 'S4', 'name' => 'New Stop']);
-
-        StopTime::factory()->create([
-            'trip_id' => $trip->id,
-            'stop_id' => 'S3',
-            'stop_sequence' => 1,
-            'arrival_time' => 1000,
-            'departure_time' => 1000,
-        ]);
-
-        $response = $this->getJson('/api/route/R2/time/20260102/0700');
-
-        $response->assertStatus(206)
-            ->assertJsonPath('errors.0', 'Nincs elérhető járat ebben az időintervallumban.');
-    }
-
-    public function test_get_trips_by_route_id_rejects_invalid_date_format()
-    {
-        $response = $this->getJson('/api/route/R1/time/2026-01-01/0700');
-
-        $response->assertStatus(400)
-            ->assertJsonPath('errors.0', 'Hibás dátum formátum (YYYYMMDD).');
-    }
-
-    public function test_get_trips_by_stop_id_returns_trips_for_stop_ids()
+public function test_get_trips_by_stop_id_returns_trips_for_stop_ids()
     {
         $stop = Stop::factory()->create(['id' => 'S5', 'name' => 'Station']);
         

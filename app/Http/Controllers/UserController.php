@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\SearchController;
-use App\Models\User;
-use App\Models\Route;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
+use App\Models\Route;
+use App\Models\Trip;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
-use Exception;
+use App\Models\DeviceToken;
 
 class UserController extends Controller
 {
@@ -19,77 +20,66 @@ class UserController extends Controller
     {
         $email = $request->input('email');
         $password = $request->input('password');
-        $rememberUser = $request->input('remember_user') ?? false;
+        $rememberUser = (bool) ($request->input('remember_user') ?? false);
 
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($password, $password ? $user->password : '')) {
+        if (!$user || !Hash::check($password, $user->password)) {
             return response()->json([
                 'data'   => [],
                 'errors' => ['Hibás email cím vagy jelszó.'],
             ], 401, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        try {
-            //Set the session cookie for browsers
+
+        if ($request->hasSession()) {
             Auth::login($user);
             $request->session()->regenerate();
-        } catch (\Exception $e) {
-            // session not available (mobile client) — intentionally ignored
         }
 
-        //Create the token for mobile devices
-        $user->tokens()->delete();
+        // Ne töröljük a korábbi tokeneket: mobilon több aktív eszköz/token is lehet.
         $expiresAt = Carbon::now()->addDays($rememberUser ? 14 : 1);
-        $token = $user->createToken(
-            'access_token',
-            ['*'],
-            $expiresAt
-        );
-        
+        $token = $user->createToken('access_token', ['*'], $expiresAt);
+
         return response()->json([
-            'data'      => ['token' => $token->plainTextToken],
-            'errors'    => []
+            'data'   => ['token' => $token->plainTextToken],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function log_out(UserRequest $request)
     {
         if ($user = $request->user()) {
-
-            // Token (API)
             $token = $user->currentAccessToken();
             if ($token instanceof PersonalAccessToken) {
                 $token->delete();
-            }
-    
-            // Session (web)
-            if (Auth::guard('web')->check()) {
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+            } else {
+                $user->tokens()->delete();
             }
         }
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        if ($request->hasSession() && Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
-            'data'      => [],
-            'errors'    => []
+            'data'   => [],
+            'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    public function get(UserRequest $request) {
+    public function get(UserRequest $request)
+    {
         return response()->json([
-            'data' => [
-                'user' => $request->user(),
-            ],
+            'data' => ['user' => $request->user()],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function store(UserRequest $request)
     {
-        $user = User::create($request->all());
+        $user = User::create($request->validated());
 
         return response()->json([
             'data'   => ['user' => $user],
@@ -100,11 +90,9 @@ class UserController extends Controller
     public function update(UserRequest $request)
     {
         $user = $request->user();
+        $validated = $request->validated();
 
-        $validated = $request->all();
-
-        if (isset($validated['password'])) 
-        {
+        if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
 
@@ -113,12 +101,7 @@ class UserController extends Controller
 
         return response()->json([
             'data' => [
-                'user' => $user->refresh()->only([
-                    'id',
-                    'first_name',
-                    'second_name',
-                    'email',
-                ])
+                'user' => $user->refresh()->only(['id', 'first_name', 'second_name', 'email'])
             ],
             'errors' => []
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -126,9 +109,7 @@ class UserController extends Controller
 
     public function destroy(UserRequest $request)
     {
-        $user = $request->user();
-
-        $user->delete();
+        $request->user()->delete();
 
         return response()->json([
             'data'   => [],
@@ -139,103 +120,96 @@ class UserController extends Controller
     public function toggleFavourite(UserRequest $request)
     {
         $user = $request->user();
-        $route_id = $request->route_id;
-        $time = $request->time;
-        try
-        {
-            Route::findOrFail($route_id);
+        $time = (string) ($request->input('time') ?? '');
+        $routeId = $request->input('route_id');
+
+        if (!$routeId && $request->filled('trip_id')) {
+            $trip = Trip::find($request->input('trip_id'));
+            if (!$trip) {
+                return response()->json([
+                    'data' => [],
+                    'errors' => ['Nincs trip ilyen id-vel.']
+                ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            $routeId = $trip->route_id;
         }
-        catch(Exception $e)
-        {
+
+        $route = Route::find($routeId);
+        if (!$route) {
             return response()->json([
-            'data'   => [],
-            'errors' => ["Nincs route ilyen id-vel."]
+                'data' => [],
+                'errors' => ['Nincs route ilyen id-vel.']
             ], 400, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        $exists = $user->favourites()
-                   ->wherePivot('route_id', $route_id)
-                   ->wherePivot('time', $time)
-                   ->exists();
-        if ($exists) 
-        {
-            $route = $user->favourites()
-                                    ->where('routes.id', $route_id)
-                                    ->get()
-                                    ->map(function ($route) {
-                                        return [
-                                            'id'         => $route->id,
-                                            'short_name' => $route->short_name,
-                                            'type'       => SearchController::getRouteTypeCategory($route->type),
-                                            'color'      => $route->color,
-                                        ];
-                                    })
-                                    ->first();
 
+        $exists = $user->favourites()
+            ->wherePivot('route_id', $routeId)
+            ->wherePivot('time', $time)
+            ->exists();
+
+        if ($exists) {
             $user->favourites()
-                ->wherePivot('route_id', $route_id)
+                ->wherePivot('route_id', $routeId)
                 ->wherePivot('time', $time)
                 ->detach();
-
-            return response()->json([
-                'data'   => [
-                    'route' => $route,
-                    'new_status' => false
-                ],
-                'errors' => []
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            
-        } 
-        else 
-        {
-            $user->favourites()->attach($route_id, [
-                'time' => $time
-            ]);
-            return response()->json([
-                'data'   => [
-                    'route' => $user->favourites()
-                                    ->where('routes.id', $route_id)
-                                    ->get()
-                                    ->map(function ($route) {
-                                        return [
-                                            'id'         => $route->id,
-                                            'short_name' => $route->short_name,
-                                            'type'       => SearchController::getRouteTypeCategory($route->type),
-                                            'color'      => $route->color,
-                                        ];
-                                    })
-                                    ->first(),
-                    'new_status' => true
-                ],
-                'errors' => []
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } else {
+            $user->favourites()->attach($routeId, ['time' => $time]);
         }
-        
+
+        return response()->json([
+            'data' => [
+                'route' => [
+                    'id' => $route->id,
+                    'short_name' => $route->short_name,
+                    'type' => SearchController::getRouteTypeCategory($route->type),
+                    'color' => $route->color,
+                ],
+                'new_status' => !$exists,
+            ],
+            'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function favourites(UserRequest $request)
     {
-        $user = $request->user();
-
-        $favourites = $user->favourites()
-                        ->get()
-                        ->map(function ($route) {
-                            return [
-                                'route' => 
-                                [
-                                    'id'          => $route->id,
-                                    'short_name'  => $route->short_name,
-                                    'type'        => SearchController::getRouteTypeCategory($route->type),
-                                    'color'       => $route->color
-                                    ],
-                                'time'  => $route->pivot->time,
-                            ];
-                        });
+        $favourites = $request->user()->favourites()
+            ->get()
+            ->map(function ($route) {
+                return [
+                    'route' => [
+                        'id' => $route->id,
+                        'short_name' => $route->short_name,
+                        'type' => SearchController::getRouteTypeCategory($route->type),
+                        'color' => $route->color,
+                    ],
+                    'time' => $route->pivot->time,
+                ];
+            });
 
         return response()->json([
-            'data'   => [
-                'favourites' => $favourites
-            ],
+            'data' => ['favourites' => $favourites],
             'errors' => []
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function saveDeviceToken(UserRequest $request)
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'platform' => ['nullable', 'string'],
+        ]);
+
+        DeviceToken::updateOrCreate(
+            ['token' => $validated['token']],
+            [
+                'user_id' => $request->user()->id,
+                'platform' => $validated['platform'] ?? 'android',
+            ]
+        );
+
+        return response()->json([
+                'data' => ['message' => 'Device token saved.'],
+                'errors' => [],
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }

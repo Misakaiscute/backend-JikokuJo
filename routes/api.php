@@ -7,30 +7,24 @@ use App\Http\Controllers\StopController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\UserController;
 
-//menetrendkereső
-
+//MENETRENDKERESŐ
 Route::get('/queryables', [SearchController::class, 'queryables']);
 //összes megállónév + járatnevek
 Route::post('/stop/trip', [TripController::class, 'getTripsByStopId']);
 //visszaadja az összes utat ami érint egy megállót
 //adatok: date, time, ids
 Route::post('/route/trip', [TripController::class, 'getTripsByRouteId']);
-//ITT VÁLTOZOTT
 //visszaadja egy route tripjeit és annak megállóit a routeId és időpont alapján 
 //adatok: date (YYYYMMDD), time (HHMM), route_id
 Route::post('/trip/shapes', [ShapeController::class, 'getShapesByTripId']);
-//ITT VÁLTOZOTT
 //visszaadja az összes shape pontját egy tripnek
 //adatok: trip_id
 Route::post('/trip/stops', [StopController::class, 'getStopsByTripId']);
-//ITT VÁLTOZOTT 
 //visszaadja az összes megállóját egy tripnek
 //adatok: trip_id
 
-//user
-
+//USER
 Route::post('/user/login', [UserController::class, 'login']);
-//ITT VÁLTOZOTT
 //rememberUser változó (default false) arra ha a login tokenje 7 napig legyen érvényes (default 1 nap) 
 //adatok: email, password, remember_user
 Route::post('/user/register', [UserController::class, 'store']);
@@ -47,5 +41,8 @@ Route::middleware('auth:sanctum')->group(function ()
     //hozzáadja vagy kiveszi a routeot a kedvencek közül, adatok: route_id, time (HHMM)
     Route::get('/user/favourites', [UserController::class, 'favourites']);
     //favouritek listázása
+    Route::post('/user/device-token', [UserController::class, 'saveDeviceToken']);
+    //elment a userhez egy device token az értesítésküldéshez
+    //adatok: token, platfrom (kihagyható autómatikusan android ha üres)
 }); 
 

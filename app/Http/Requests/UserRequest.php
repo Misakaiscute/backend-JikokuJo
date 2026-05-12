@@ -12,32 +12,24 @@ class UserRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
-        //Toggle favourite route
-        if ($this->is('*/favourites/toggle') || 
-            ($this->isMethod('POST') && str_contains($this->path(), 'favourites/toggle'))) {
+        if ($this->isMethod('POST') && str_contains($this->path(), 'routes/favourite/toggle')) {
             return [
-                'route_id' => ['required', 'integer', 'exists:routes,id'],
-                'minutes'  => ['required', 'integer', 'min:1', 'max:1440'],
+                'route_id' => ['required_without:trip_id', 'string'],
+                'trip_id'  => ['required_without:route_id', 'string'],
+                'time'     => ['sometimes', 'string'],
             ];
         }
 
-        //Login
-        if ($this->is('*/login') || 
-            ($this->isMethod('POST') && str_contains($this->path(), 'login'))) {
+        if ($this->isMethod('POST') && str_contains($this->path(), 'login')) {
             return [
                 'email'    => ['required', 'email'],
                 'password' => ['required', 'string'],
+                'remember_user' => ['sometimes', 'boolean'],
             ];
         }
 
-        //Registration
         if ($this->isMethod('POST') && str_contains($this->path(), 'register')) {
             return [
                 'first_name'    => ['required', 'string', 'max:255'],
@@ -47,15 +39,10 @@ class UserRequest extends FormRequest
             ];
         }
 
-        //Update
         return [
             'first_name'    => ['sometimes', 'string', 'max:255'],
             'second_name'   => ['sometimes', 'string', 'max:255'],
-            'email'         => [
-                'sometimes',
-                'email',
-                Rule::unique('users')->ignore($this->user()?->id),
-            ],
+            'email'         => ['sometimes', 'email', Rule::unique('users')->ignore($this->user()?->id)],
             'password'      => ['sometimes', 'min:8', 'confirmed'],
         ];
     }
@@ -63,9 +50,8 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'route_id.exists' => 'A megadott járat nem létezik.',
-            'minutes.min'     => 'Minimum 1 percet kell megadni .',
-            'minutes.max'     => 'Maximum 24 óra lehet a megadott percek (1440).',
+            'route_id.required_without' => 'A route_id vagy trip_id mező megadása kötelező.',
+            'trip_id.required_without' => 'A route_id vagy trip_id mező megadása kötelező.',
             'first_name.max'  => 'A vezetéknév maximum 255 karakter lehet.',
             'first_name.required' => 'A vezetéknév mező kötelező.',
             'second_name.max'  => 'A keresztnév maximum 255 karakter lehet.',

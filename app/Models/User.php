@@ -57,4 +57,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
 }

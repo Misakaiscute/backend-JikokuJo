@@ -23,9 +23,10 @@ class DatabaseSeeder extends Seeder
 
         foreach($sql_statements as $sql_statement)
         {
-            if(!empty($sql_statement))
+            $trimmed = trim($sql_statement);
+            if(!empty($trimmed))
             {
-                DB::statement(trim($sql_statement) . ";");
+                DB::statement($trimmed . ";");
             }
         }
     }

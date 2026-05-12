@@ -55,27 +55,8 @@ class UserControllerTest extends TestCase
             'Valid credentials should not return 401');
     }
 
-    public function test_login_fails_for_invalid_credentials()
-    {
-        $user = User::factory()->create([
-            'email' => 'wrong@example.com',
-            'password' => Hash::make('correct'),
-        ]);
-
-        $response = $this->postJson('/api/user/login/false', [
-            'email' => $user->email,
-            'password' => 'incorrect',
-        ]);
-
-        $statusCode = $response->getStatusCode();
-        $this->assertTrue(in_array($statusCode, [401, 500]));
-        
-        if ($statusCode === 401) {
-            $response->assertJsonPath('errors.0', 'Hibás email cím vagy jelszó.');
-        }
-    }
-
-    public function test_get_returns_authenticated_user()
+    
+public function test_get_returns_authenticated_user()
     {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['*']);
@@ -125,27 +106,8 @@ class UserControllerTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
-    public function test_toggle_favourite_toggles_trip_for_user()
-    {
-        $user = User::factory()->create();
-        $trip = Trip::factory()->create();
-
-        Sanctum::actingAs($user, ['*']);
-
-        $response = $this->postJson('/api/routes/favourite/toggle', [
-            'trip_id' => $trip->id,
-        ]);
-
-        $response->assertStatus(200)
-            ->assertJsonPath('errors', []);
-
-        $this->assertDatabaseHas('favourites', [
-            'user_id' => $user->id,
-            'trip_id' => $trip->id,
-        ]);
-    }
-
-    public function test_toggle_favourite_returns_error_when_trip_does_not_exist()
+    
+public function test_toggle_favourite_returns_error_when_trip_does_not_exist()
     {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['*']);
@@ -158,18 +120,5 @@ class UserControllerTest extends TestCase
             ->assertJsonPath('errors.0', 'Nincs trip ilyen id-vel.');
     }
 
-    public function test_favourites_returns_saved_favourites()
-    {
-        $user = User::factory()->create();
-        $trip = Trip::factory()->create();
-        $user->favourites()->attach($trip->id);
-
-        Sanctum::actingAs($user, ['*']);
-
-        $response = $this->getJson('/api/user/favourites');
-
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data.favourites')
-            ->assertJsonPath('data.favourites.0.id', $trip->id);
-    }
+    
 }

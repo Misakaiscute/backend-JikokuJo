@@ -3,19 +3,13 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Stop;
 use App\Models\Route;
 
 class SearchControllerTest extends TestCase
 {
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $sql = file_get_contents(database_path('/seeders/statements.sql'));
-        \DB::unprepared($sql);
-    }
+    use RefreshDatabase;
 
     /** @test */
     public function test_returns_404_when_no_data()

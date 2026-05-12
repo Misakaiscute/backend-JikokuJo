@@ -6,6 +6,12 @@ services:
     image: local/jikokujo
     container_name: backend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "mysql -h database -u root --skip-ssl jikokujo -e 'SELECT 1 FROM cache LIMIT 1' 2>/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 120
+      start_period: 120s
     environment:
       DB_HOST: ${DB_HOST}
       DB_DATABASE: ${DB_DATABASE}
@@ -18,7 +24,7 @@ services:
       REVERB_PORT: 8080
       REVERB_SCHEME: http
     volumes:
-      - app-volume:/var/www
+      - .:/var/www
     depends_on:
       database:
         condition: service_healthy
@@ -55,6 +61,8 @@ services:
     depends_on:
       reverb:
         condition: service_started
+      app:
+        condition: service_healthy
     volumes:
       - app-volume:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d
@@ -66,6 +74,10 @@ services:
       REVERB_APP_ID: ${REVERB_APP_ID}
       REVERB_APP_KEY: ${REVERB_APP_KEY}
       REVERB_APP_SECRET: ${REVERB_APP_SECRET}
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     build:
       context: ./
       dockerfile: docker-compose/laravel/dependants/Dockerfile
@@ -76,7 +88,7 @@ services:
       database:
         condition: service_healthy
       app:
-        condition: service_started
+        condition: service_healthy
     command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT} --debug
     ports:
     - "8080:8080"
@@ -102,8 +114,10 @@ services:
     volumes:
       - app-volume:/var/www
     depends_on:
-      - redis
-      - app
+      redis:
+        condition: service_started
+      app:
+        condition: service_healthy
     networks:
       - jikokujo
 
@@ -115,6 +129,52 @@ services:
       - 6379:6379
     networks:
       - jikokujo
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker-compose/laravel/dependants/Dockerfile
+    container_name: scheduler
+    command: php artisan schedule:work
+    volumes:
+      - app-volume:/var/www
+    working_dir: /var/www
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+    - jikokujo
+
+  job-queue:
+    build:
+      context: .
+      dockerfile: docker-compose/laravel/dependants/Dockerfile
+    container_name: job-queue
+    command: php artisan queue:work --sleep=1 --tries=3 --timeout=120
+    volumes:
+      - app-volume:/var/www
+    working_dir: /var/www
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+    - jikokujo
 
 networks:
   jikokujo:
