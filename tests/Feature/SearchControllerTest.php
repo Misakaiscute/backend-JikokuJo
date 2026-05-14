@@ -6,13 +6,14 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Stop;
 use App\Models\Route;
+use PHPUnit\Framework\Attributes\Test;
 
 class SearchControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function test_returns_404_when_no_data()
+    #[Test]
+    public function returns_404_when_no_data()
     {
         $this->getJson('/api/queryables')
             ->assertStatus(404)
@@ -25,8 +26,8 @@ class SearchControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function test_returns_grouped_stops()
+    #[Test]
+    public function returns_grouped_stops()
     {
         Stop::factory()->count(2)->create([
             'name' => 'Deák tér'
@@ -42,8 +43,8 @@ class SearchControllerTest extends TestCase
             ->assertJsonFragment(['name' => 'Astoria']);
     }
 
-    /** @test */
-    public function test_groups_ids_correctly()
+    #[Test]
+    public function groups_ids_correctly()
     {
         $stops = Stop::factory()->count(2)->create([
             'name' => 'Deák tér'
@@ -61,8 +62,8 @@ class SearchControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function test_correct_routes_mapping()
+    #[Test]
+    public function correct_routes_mapping()
     {
         $metro = Route::factory()->create([
             'type' => 1,
@@ -92,8 +93,8 @@ class SearchControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function test_correct_id_format_for_single_stop()
+    #[Test]
+    public function correct_id_format_for_single_stop()
     {
         $stop = Stop::factory()->create([
             'name' => 'Test Stop'
@@ -107,8 +108,8 @@ class SearchControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function test_returns_both_stops_and_routes()
+    #[Test]
+    public function returns_both_stops_and_routes()
     {
         Stop::factory()->create([
             'name' => 'Kálvin tér'

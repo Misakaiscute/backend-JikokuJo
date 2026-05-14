@@ -7,13 +7,15 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_store_creates_user_and_returns_user()
+    #[Test]
+    public function store_creates_user_and_returns_user()
     {
         $payload = [
             'first_name' => 'Anna',
@@ -39,7 +41,8 @@ class UserControllerTest extends TestCase
         $this->assertTrue(Hash::check('secret123', $user->password));
     }
 
-    public function test_login_returns_token_for_valid_credentials()
+    #[Test]
+    public function login_returns_token_for_valid_credentials()
     {
         $user = User::factory()->create([
             'email' => 'login@example.com',
@@ -55,8 +58,8 @@ class UserControllerTest extends TestCase
             'Valid credentials should not return 401');
     }
 
-    
-public function test_get_returns_authenticated_user()
+    #[Test]
+    public function get_returns_authenticated_user()
     {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['*']);
@@ -67,7 +70,8 @@ public function test_get_returns_authenticated_user()
             ->assertJsonPath('data.user.id', $user->id);
     }
 
-    public function test_update_updates_authenticated_user()
+    #[Test]
+    public function update_updates_authenticated_user()
     {
         $user = User::factory()->create([
             'first_name' => 'Gabor',
@@ -93,7 +97,8 @@ public function test_get_returns_authenticated_user()
         ]);
     }
 
-    public function test_destroy_deletes_authenticated_user()
+    #[Test]
+    public function destroy_deletes_authenticated_user()
     {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['*']);
@@ -106,8 +111,65 @@ public function test_get_returns_authenticated_user()
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
-    
-public function test_toggle_favourite_returns_error_when_trip_does_not_exist()
+    #[Test]
+    public function logout_invalidates_token_after_logout()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->postJson('/api/user/logout');
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function get_user_favourites_returns_all_favourites()
+    {
+        $user = User::factory()->create();
+        $route1 = \App\Models\Route::factory()->create(['id' => 'R_FAV1']);
+        $route2 = \App\Models\Route::factory()->create(['id' => 'R_FAV2']);
+        
+        $user->favourites()->attach($route1->id, ['time' => '0800']);
+        $user->favourites()->attach($route2->id, ['time' => '1700']);
+
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->getJson('/api/user/favourites');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'favourites' => [
+                        [
+                            'route' => ['id', 'short_name', 'type', 'color'],
+                            'time',
+                        ]
+                    ]
+                ],
+                'errors'
+            ]);
+
+        $favourites = $response->json('data.favourites');
+        $this->assertCount(2, $favourites);
+        
+        $times = collect($favourites)->pluck('time')->toArray();
+        $this->assertContains('0800', $times);
+        $this->assertContains('1700', $times);
+    }
+
+    #[Test]
+    public function get_user_favourites_returns_empty_list()
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->getJson('/api/user/favourites');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.favourites', []);
+    }
+
+    #[Test]
+    public function toggle_favourite_returns_error_when_trip_does_not_exist()
     {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['*']);

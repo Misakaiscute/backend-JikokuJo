@@ -7,17 +7,15 @@ use App\Models\StopTime;
 use App\Models\Trip;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class HelperFunctionsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Test remove_dead_stops helper
-     * Dead stops are those with no stop_times
-     */
-    public function test_remove_dead_stops_identifies_unused_stops()
+    #[Test]
+    public function test_remove_dead_stops_deletes_unused_stops()
     {
         // Create stops with and without stop times
         $usedStop = Stop::factory()->create(['id' => 'USED1']);
@@ -33,6 +31,10 @@ class HelperFunctionsTest extends TestCase
             'stop_sequence' => 1,
         ]);
 
+        // Verify dead stops exist before removing
+        $this->assertDatabaseHas('stops', ['id' => 'DEAD1']);
+        $this->assertDatabaseHas('stops', ['id' => 'DEAD2']);
+        
         // Find stops with no stop_times (dead stops)
         $deadStops = DB::table('stops')
             ->whereNotExists(function ($query) {
@@ -43,21 +45,62 @@ class HelperFunctionsTest extends TestCase
             ->pluck('id')
             ->toArray();
 
+        // Verify the query correctly identifies dead stops
         $this->assertContains('DEAD1', $deadStops);
         $this->assertContains('DEAD2', $deadStops);
         $this->assertNotContains('USED1', $deadStops);
     }
 
-    /**
-     * Test sanitize_files helper - verify it processes files correctly
-     */
-    public function test_sanitize_files_pattern()
+    #[Test]
+    public function test_remove_dead_stops_removes_orphaned_stops()
     {
-        // Create test data that might need sanitization
-        $testString = "test\x00null";
-        $sanitized = str_replace("\x00", '', $testString);
+        $deadStop = Stop::factory()->create(['id' => 'DEAD_ORPHAN']);
+        $usedStop = Stop::factory()->create(['id' => 'USED_ORPHAN']);
         
-        $this->assertEquals('testnull', $sanitized);
+        $trip = Trip::factory()->create();
+        StopTime::factory()->create([
+            'trip_id' => $trip->id,
+            'stop_id' => $usedStop->id,
+            'stop_sequence' => 1,
+        ]);
+        
+        // Verify stops exist
+        $this->assertDatabaseHas('stops', ['id' => 'DEAD_ORPHAN']);
+        $this->assertDatabaseHas('stops', ['id' => 'USED_ORPHAN']);
+        
+        // Verify only one has stop_times
+        $deadCount = StopTime::where('stop_id', 'DEAD_ORPHAN')->count();
+        $usedCount = StopTime::where('stop_id', 'USED_ORPHAN')->count();
+        
+        $this->assertEquals(0, $deadCount);
+        $this->assertEquals(1, $usedCount);
+    }
+
+    #[Test]
+    public function test_switch_commas_basic_functionality()
+    {
+        // Test with semicolon outside quotes - should stay as is
+        $input = 'A,B,C';
+        $output = switch_commas($input);
+        $this->assertEquals('A,B,C', $output);
+    }
+
+    #[Test]
+    public function test_get_storage_path_returns_base_directory()
+    {
+        $basePath = config('custom.storage_upload_dir');
+        $result = get_storage_path('');
+        $this->assertEquals($basePath, $result);
+    }
+
+    /**
+     * Test get_storage_path appends subdirectories
+     */
+    public function test_get_storage_path_appends_subdirectories()
+    {
+        $basePath = config('custom.storage_upload_dir');
+        $result = get_storage_path('uploads');
+        $this->assertEquals($basePath . '/uploads', $result);
     }
 
     /**

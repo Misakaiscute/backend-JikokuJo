@@ -11,12 +11,14 @@ use App\Models\CalendarDate;
 use App\Models\StopTime;
 use App\Models\Pathway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ModelsTest extends TestCase
 {
     use RefreshDatabase;
 
+    #[Test]
 public function test_route_has_many_trips()
     {
         $route = Route::factory()->create(['id' => 'R3']);
@@ -28,9 +30,7 @@ public function test_route_has_many_trips()
         $this->assertEquals(2, $route->trips->count());
     }
 
-    /**
-     * Test Trip model relationships
-     */
+    #[Test]
     public function test_trip_belongs_to_route()
     {
         $route = Route::factory()->create(['id' => 'R4']);
@@ -39,6 +39,7 @@ public function test_route_has_many_trips()
         $this->assertEquals($route->id, $trip->route->id);
     }
 
+    #[Test]
     public function test_trip_has_many_stop_times()
     {
         $trip = Trip::factory()->create(['id' => 'T4']);
@@ -59,8 +60,7 @@ public function test_route_has_many_trips()
         $this->assertEquals(2, $trip->stopTimes->count());
     }
 
-    
-public function test_trip_belongs_to_shape()
+    public function test_trip_belongs_to_shape()
     {
         $shape = Shape::factory()->create(['id' => 'SH1']);
         $trip = Trip::factory()->create(['id' => 'T6', 'shape_id' => $shape->id]);
@@ -69,9 +69,7 @@ public function test_trip_belongs_to_shape()
     }
 
 
-/**
-     * Test Shape model relationships
-     */
+    #[Test]
     public function test_shape_has_many_trips()
     {
         $shape = Shape::factory()->create(['id' => 'SH2']);
@@ -82,9 +80,7 @@ public function test_trip_belongs_to_shape()
     }
 
 
-/**
-     * Test CalendarDate filtering logic
-     */
+    #[Test]
     public function test_calendar_date_marks_active_services()
     {
         $date = 20260426;

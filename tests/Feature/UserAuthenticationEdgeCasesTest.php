@@ -6,22 +6,20 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserAuthenticationEdgeCasesTest extends TestCase
 {
     use RefreshDatabase;
-
-    /**
-     * Test registration with weak password
-     */
-    public function test_register_rejects_weak_password()
+    #[Test]
+    public function register_rejects_weak_password()
     {
         $payload = [
             'first_name' => 'Test',
             'second_name' => 'User',
             'email' => 'weak@example.com',
-            'password' => '12345', // Weak password (5 chars min)
+            'password' => '12345',
             'password_confirmation' => '12345',
         ];
 
@@ -32,10 +30,8 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         );
     }
 
-    /**
-     * Test registration with mismatched passwords
-     */
-    public function test_register_rejects_mismatched_passwords()
+    #[Test]
+    public function register_rejects_mismatched_passwords()
     {
         $payload = [
             'first_name' => 'Test',
@@ -50,10 +46,8 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals(422, $response->getStatusCode());
     }
 
-    /**
-     * Test registration with duplicate email
-     */
-    public function test_register_rejects_duplicate_email()
+    #[Test]
+    public function register_rejects_duplicate_email()
     {
         User::factory()->create(['email' => 'duplicate@example.com']);
 
@@ -70,10 +64,8 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals(422, $response->getStatusCode());
     }
 
-    /**
-     * Test registration missing required fields
-     */
-    public function test_register_requires_all_fields()
+    #[Test]
+    public function register_requires_all_fields()
     {
         // Missing password
         $payload = [
@@ -88,10 +80,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
     }
 
 
-/**
-     * Test login with wrong password
-     */
-    public function test_login_fails_with_wrong_password()
+    //Test login with wrong password
+    #[Test]
+    public function login_fails_with_wrong_password()
     {
         $user = User::factory()->create([
             'email' => 'correct@example.com',
@@ -107,10 +98,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals(401, $response->getStatusCode());
     }
 
-    /**
-     * Test login token expiration with remember_user=false
-     */
-    public function test_login_default_token_expiry_one_day()
+    //Test login token expiration with remember_user=false
+    #[Test]
+    public function login_default_token_expiry_one_day()
     {
         $user = User::factory()->create([
             'email' => 'token@example.com',
@@ -128,10 +118,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertIsString($token);
     }
 
-    /**
-     * Test login token extended expiry with remember_user=true
-     */
-    public function test_login_extended_token_expiry_fourteen_days()
+    //Test login token extended expiry with remember_user=true
+    #[Test]
+    public function login_extended_token_expiry_fourteen_days()
     {
         $user = User::factory()->create([
             'email' => 'remember@example.com',
@@ -150,10 +139,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
     }
 
 
-/**
-     * Test accessing protected endpoints without token
-     */
-    public function test_protected_endpoints_require_token()
+    //Test accessing protected endpoints without token
+    #[Test]
+    public function protected_endpoints_require_token()
     {
         $response = $this->getJson('/api/user');
         $this->assertEquals(401, $response->getStatusCode());
@@ -167,10 +155,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals(401, $response->getStatusCode());
     }
 
-    /**
-     * Test user profile retrieval
-     */
-    public function test_get_user_profile()
+    //Test user profile retrieval
+    #[Test]
+    public function get_user_profile()
     {
         $user = User::factory()->create([
             'first_name' => 'John',
@@ -188,10 +175,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
             ->assertJsonPath('data.user.second_name', 'Doe');
     }
 
-    /**
-     * Test user profile update
-     */
-    public function test_update_user_profile()
+    //Test user profile update
+    #[Test]
+    public function update_user_profile()
     {
         $user = User::factory()->create([
             'first_name' => 'Jane',
@@ -212,10 +198,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals('Smithson', $user->second_name);
     }
 
-    /**
-     * Test partial user profile update
-     */
-    public function test_update_user_partial()
+    //Test partial user profile update
+    #[Test]
+    public function update_user_partial()
     {
         $user = User::factory()->create([
             'first_name' => 'Original',
@@ -235,10 +220,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals('Name', $user->second_name); // Should remain unchanged
     }
 
-    /**
-     * Test user account deletion
-     */
-    public function test_delete_user_account()
+    //Test user account deletion
+    #[Test]
+    public function delete_user_account()
     {
         $user = User::factory()->create();
         $userId = $user->id;
@@ -253,10 +237,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $userId]);
     }
 
-    /**
-     * Test delete user removes associated favorites
-     */
-    public function test_delete_user_cascade()
+    //Test delete user removes associated favorites
+    #[Test]
+    public function delete_user_cascade()
     {
         $user = User::factory()->create();
         
@@ -273,10 +256,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertDatabaseMissing('favourites', ['user_id' => $user->id]);
     }
 
-    /**
-     * Test invalid email format
-     */
-    public function test_register_rejects_invalid_email()
+    //Test invalid email format
+    #[Test]
+    public function register_rejects_invalid_email()
     {
         $payload = [
             'first_name' => 'Test',
@@ -291,10 +273,9 @@ class UserAuthenticationEdgeCasesTest extends TestCase
         $this->assertEquals(422, $response->getStatusCode());
     }
 
-    /**
-     * Test using invalid token
-     */
-    public function test_invalid_token_is_rejected()
+    //Test using invalid token
+    #[Test]
+    public function invalid_token_is_rejected()
     {
         $response = $this->withHeader('Authorization', 'Bearer invalid_token')
             ->getJson('/api/user');
