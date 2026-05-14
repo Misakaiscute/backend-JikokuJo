@@ -1,10 +1,10 @@
 services:
   app:
+    image: local/jikokujo
+    container_name: app
     build:
       context: ./
       dockerfile: docker-compose/laravel/main/Dockerfile
-    image: local/jikokujo
-    container_name: backend
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "mysql -h database -u root --skip-ssl jikokujo -e 'SELECT 1 FROM cache LIMIT 1' 2>/dev/null"]
@@ -33,8 +33,8 @@ services:
 
   database:
     image: mysql:9.6.0
-    command: --restrict-fk-on-non-standard-key=OFF
     container_name: database
+    command: --restrict-fk-on-non-standard-key=OFF
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
@@ -52,7 +52,7 @@ services:
     networks:
       - jikokujo
   
-  api:
+  nginx:
     image: nginx:1.29.5
     container_name: nginx
     restart: unless-stopped
@@ -70,6 +70,8 @@ services:
       - jikokujo
 
   reverb:
+    image: local/jikokujo-reverb
+    container_name: reverb
     environment:
       REVERB_APP_ID: ${REVERB_APP_ID}
       REVERB_APP_KEY: ${REVERB_APP_KEY}
@@ -81,12 +83,8 @@ services:
     build:
       context: ./
       dockerfile: docker-compose/laravel/dependants/Dockerfile
-    image: local/jikokujo-reverb
-    container_name: reverb
     restart: unless-stopped
     depends_on:
-      database:
-        condition: service_healthy
       app:
         condition: service_healthy
     command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT} --debug
@@ -96,11 +94,11 @@ services:
       - jikokujo
 
   poller:
+    image: local/jikokujo-poller
+    container_name: poller
     build:
       context: ./
       dockerfile: docker-compose/laravel/dependants/Dockerfile
-    image: local/jikokujo-poller
-    container_name: poller
     restart: unless-stopped
     command: php /var/www/artisan poller:run
     environment:
@@ -131,17 +129,16 @@ services:
       - jikokujo
 
   scheduler:
+    image: local/jikokujo-scheduler
+    container_name: scheduler
     build:
       context: .
       dockerfile: docker-compose/laravel/dependants/Dockerfile
-    container_name: scheduler
     command: php artisan schedule:work
     volumes:
       - app-volume:/var/www
     working_dir: /var/www
     depends_on:
-      database:
-        condition: service_healthy
       app:
         condition: service_healthy
     restart: unless-stopped
@@ -151,13 +148,14 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     networks:
-    - jikokujo
+      - jikokujo
 
   job-queue:
+    image: local/jikokujo-job-queue
+    container_name: job-queue
     build:
       context: .
       dockerfile: docker-compose/laravel/dependants/Dockerfile
-    container_name: job-queue
     command: php artisan queue:work --sleep=1 --tries=3 --timeout=120
     volumes:
       - app-volume:/var/www
@@ -174,7 +172,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     networks:
-    - jikokujo
+      - jikokujo
 
 networks:
   jikokujo:
