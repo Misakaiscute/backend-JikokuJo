@@ -8,20 +8,16 @@ use App\Models\Shape;
 use App\Models\Stop;
 use App\Models\StopTime;
 use App\Models\Trip;
-use App\Models\User;
-use App\Models\Favourite;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TripEdgeCasesTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Test trip filtering with 2-hour time window (±120 minutes)
-     */
-    public function test_get_trips_respects_two_hour_window()
+    #[Test]
+    public function get_trips_respects_two_hour_window()
     {
         $route = Route::factory()->create(['id' => 'R_WINDOW']);
         $trip = Trip::factory()->create([
@@ -67,10 +63,8 @@ class TripEdgeCasesTest extends TestCase
         );
     }
 
-    /**
-     * Test preventing boarding at last stop
-     */
-    public function test_cannot_board_at_last_stop()
+    #[Test]
+    public function cannot_board_at_last_stop()
     {
         $route = Route::factory()->create(['id' => 'R_LAST']);
         $trip = Trip::factory()->create([
@@ -109,13 +103,12 @@ class TripEdgeCasesTest extends TestCase
         ]);
 
         // Should not include trips where queried stop is the last stop
-        $this->assertIsArray($response->json('data.trips', []));
+        $this->assertIsArray($response->json('data.trips'));
     }
 
-    /**
-     * Test service filtering excludes inactive dates
-     */
-    public function test_excluded_service_dates_return_no_trips()
+    //Test service filtering excludes inactive dates
+    #[Test]
+    public function excluded_service_dates_return_no_trips()
     {
         $route = Route::factory()->create(['id' => 'R_EXCLUDE']);
         $trip = Trip::factory()->create([
@@ -152,10 +145,9 @@ class TripEdgeCasesTest extends TestCase
         );
     }
 
-    /**
-     * Test multiple stops in single query
-     */
-    public function test_query_multiple_stops_returns_all_matching_trips()
+    //Test multiple stops in single query
+    #[Test]
+    public function query_multiple_stops_returns_all_matching_trips()
     {
         $trip1 = Trip::factory()->create(['id' => 'T_M1', 'service_id' => 'S_M']);
         $trip2 = Trip::factory()->create(['id' => 'T_M2', 'service_id' => 'S_M']);
@@ -194,10 +186,9 @@ class TripEdgeCasesTest extends TestCase
         );
     }
 
-    /**
-     * Test shape retrieval with multiple sequence points
-     */
-    public function test_shape_points_ordered_by_sequence()
+    //Test shape retrieval with multiple sequence points
+    #[Test]
+    public function shape_points_ordered_by_sequence()
     {
         $trip = Trip::factory()->create([
             'id' => 'T_SHAPE',
@@ -238,10 +229,9 @@ class TripEdgeCasesTest extends TestCase
         );
     }
 
-    /**
-     * Test invalid date format rejection
-     */
-    public function test_invalid_date_format_returns_error()
+    //Test invalid date format rejection
+    #[Test]
+    public function invalid_date_format_returns_error()
     {
         $response = $this->postJson('/api/route/trip', [
             'date' => '26-04-2026', // Wrong format
@@ -252,10 +242,9 @@ class TripEdgeCasesTest extends TestCase
         $this->assertEquals(400, $response->getStatusCode());
     }
 
-    /**
-     * Test invalid time format rejection
-     */
-    public function test_invalid_time_format_returns_error()
+    //Test invalid time format rejection
+    #[Test]
+    public function invalid_time_format_returns_error()
     {
         $response = $this->postJson('/api/route/trip', [
             'date' => '20260426',
@@ -266,10 +255,9 @@ class TripEdgeCasesTest extends TestCase
         $this->assertEquals(400, $response->getStatusCode());
     }
 
-    /**
-     * Test time format edge cases
-     */
-    public function test_time_format_edge_cases()
+    //Test time format edge cases
+    #[Test]
+    public function time_format_edge_cases()
     {
         $route = Route::factory()->create(['id' => 'R_EDGE']);
         
