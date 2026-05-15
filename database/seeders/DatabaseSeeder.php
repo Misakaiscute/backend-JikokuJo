@@ -52,8 +52,11 @@ class DatabaseSeeder extends Seeder
         $files = glob(get_storage_path("*"));
         foreach($files as $file)
         {
-            if(is_file($file)) 
+            if(is_file($file) ) 
             {
+                if(basename($file) === 'jikokujo-firebase-adminsdk-fbsvc-639b79334f.json') {
+                    continue;
+                }
                 unlink($file);
             }
         }

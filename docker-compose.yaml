@@ -64,7 +64,7 @@ services:
       app:
         condition: service_healthy
     volumes:
-      - app-volume:/var/www
+      - .:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d
     networks:
       - jikokujo
@@ -87,6 +87,8 @@ services:
     depends_on:
       app:
         condition: service_healthy
+    volumes:
+      - .:/var/www
     command: php /var/www/artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT} --debug
     ports:
     - "8080:8080"
@@ -110,7 +112,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
-      - app-volume:/var/www
+      - .:/var/www
     depends_on:
       redis:
         condition: service_started
@@ -136,7 +138,7 @@ services:
       dockerfile: docker-compose/laravel/dependants/Dockerfile
     command: php artisan schedule:work
     volumes:
-      - app-volume:/var/www
+      - .:/var/www
     working_dir: /var/www
     depends_on:
       app:
@@ -158,19 +160,23 @@ services:
       dockerfile: docker-compose/laravel/dependants/Dockerfile
     command: php artisan queue:work --sleep=1 --tries=3 --timeout=120
     volumes:
-      - app-volume:/var/www
+      - .:/var/www
     working_dir: /var/www
     depends_on:
       database:
         condition: service_healthy
       app:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     environment:
       DB_HOST: ${DB_HOST}
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     networks:
       - jikokujo
 
@@ -179,5 +185,4 @@ networks:
     driver: bridge
 
 volumes:
-  app-volume:
   database-volume:
