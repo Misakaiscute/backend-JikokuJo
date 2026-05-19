@@ -20,7 +20,7 @@ return [
         'http://localhost:5173',
         'http://localhost:8080',
         'http://localhost:4200',
-	'https://jikokujo.horchy.hu:443'
+	    'https://jikokujo.horchy.hu'
     ],
 
     'allowed_origins_patterns' => [],
